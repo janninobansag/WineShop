@@ -1,3 +1,33 @@
+/* ==================== GLOBAL FONTS ==================== */
+body {
+  font-family: 'Raleway', sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+}
+
+.navbar-brand span {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+}
+
+.hero-section h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+.wine-name, .detail-winery {
+  font-family: 'Raleway', sans-serif;
+}
+
+/* Slightly increase base font size for better readability */
+body, .wine-info, .cart-item-details, .form-group label {
+  font-size: 0.95rem;
+}
+
+
 /* ==================== PREMIUM WINE THEME ==================== */
 * {
   margin: 0;
@@ -363,7 +393,7 @@ body {
 }
 
 .add-to-cart-btn:hover {
-  background: #070707;
+  background: #8B0000;
 }
 
 .wine-info {
@@ -689,20 +719,27 @@ body {
 }
 
 .checkout-btn {
+  display: flex;        /* Makes it behave like a box */
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  background: #722F37;
+  background: #722F37;  /* Made it match your Wine theme */
   color: white;
   border: none;
   padding: 1rem;
   border-radius: 12px;
   font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
   margin-top: 1rem;
+  text-decoration: none; /* Removes the underline */
   transition: background 0.3s;
 }
 
+
 .checkout-btn:hover {
-  background: #8B0000;
+  background: #8B0000;   /* Wine theme hover */
+  color: white;
 }
 
 .continue-shopping-link {
@@ -965,4 +1002,1118 @@ body {
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
   text-align: center;
+}
+
+/* ==================== CHECKOUT PAGE ==================== */
+.checkout-page {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  color: white;
+}
+
+.checkout-page h2 {
+  margin-bottom: 2rem;
+}
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2rem;
+}
+
+.checkout-form {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  padding: 2rem;
+  border-radius: 16px;
+}
+
+.checkout-form h3 {
+  margin-bottom: 1.5rem;
+  color: #C5A059;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.checkout-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.checkout-textarea:focus {
+  outline: none;
+  border-color: #722F37;
+}
+
+/* Order Review Sidebar */
+.order-review {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  padding: 1.5rem;
+  border-radius: 16px;
+  height: fit-content;
+}
+
+.order-review h3 {
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+.order-items {
+  margin-bottom: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.order-item img {
+  width: 50px;
+  height: 70px;
+  object-fit: contain;
+  background: #141414;
+  border-radius: 6px;
+}
+
+.order-item-info {
+  flex: 1;
+}
+
+.order-item-name {
+  font-size: 0.9rem;
+  color: white;
+}
+
+.order-item-qty {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.order-item-price {
+  color: #C5A059;
+  font-weight: bold;
+}
+
+.order-summary-checkout .total span:last-child {
+  color: #C5A059;
+}
+
+/* Success Screen */
+.success-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.success-box {
+  text-align: center;
+  background: #1a1a1a;
+  padding: 3rem;
+  border-radius: 16px;
+  border: 1px solid #722F37;
+}
+
+.success-box h1 {
+  color: #C5A059;
+  margin-bottom: 1rem;
+}
+
+/* ==================== WINE REVIEWS ==================== */
+.reviews-section {
+  margin-top: 2rem;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.reviews-section h3 {
+  color: white;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.review-card {
+  background: #222222;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #722F37;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.reviewer-name {
+  color: white;
+  font-weight: bold;
+}
+
+.reviewer-rating {
+  color: #C5A059;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.review-text {
+  color: #aaa;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ==================== PAYMENT METHOD RADIO ==================== */
+.payment-method-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #2a2a2a;
+}
+
+.payment-method-section h3 {
+  margin-bottom: 1rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+.radio-label input[type="radio"] {
+  display: none; /* Hide default ugly radio */
+}
+
+.radio-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #555;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.radio-label input[type="radio"]:checked + .radio-custom {
+  border-color: #C5A059;
+}
+
+.radio-label input[type="radio"]:checked + .radio-custom::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #C5A059;
+  border-radius: 50%;
+}
+
+/* ==================== WRITE A REVIEW BOX ==================== */
+.write-review-box {
+  background: #222222;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border: 1px solid #2a2a2a;
+}
+
+.write-review-box h4 {
+  color: #C5A059;
+  margin-bottom: 1rem;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-review-card {
+  border-left: 4px solid #C5A059 !important; /* Gold border for your own reviews */
+  background: #252525;
+}
+
+/* ==================== INTERACTIVE STAR SELECTOR ==================== */
+.star-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.selectable-star {
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.selectable-star:hover {
+  transform: scale(1.2);
+}
+
+/* ==================== SIDEBAR FILTER STYLES ==================== */
+.sidebar-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 0.85rem;
+}
+
+.active-filter {
+  background: #722F37 !important;
+  color: white !important;
+  border-color: #722F37 !important;
+}
+
+.clear-filters-btn {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  background: transparent;
+  border: 1px solid #C5A059;
+  color: #C5A059;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background: #C5A059;
+  color: #111;
+}
+
+/* ==================== FOOTER ==================== */
+.footer-container {
+  background: #0a0a0a;
+  border-top: 1px solid #222;
+  padding: 3rem 2rem 0 2rem;
+  margin-top: 4rem;
+}
+
+.footer-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 2rem;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  text-decoration: none;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.footer-brand svg {
+  color: #C5A059;
+}
+
+.footer-desc {
+  color: #888;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.footer-col h4 {
+  color: white;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.footer-col a, .footer-col p {
+  color: #888;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.footer-col a:hover {
+  color: #C5A059;
+}
+
+.footer-bottom {
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid #222;
+  text-align: center;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+/* ==================== ABOUT PAGE ==================== */
+.about-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-hero {
+  background: linear-gradient(rgba(17, 17, 17, 0.8), rgba(114, 47, 55, 0.8)), 
+              url('https://images.unsplash.com/photo-1528823872057-9c018a7a7553?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  color: white;
+  padding: 6rem 2rem;
+  text-align: center;
+}
+
+.about-hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.about-hero p {
+  color: #C5A059;
+  font-size: 1.1rem;
+}
+
+.about-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.about-story {
+  margin-bottom: 4rem;
+}
+
+.about-story h2, .about-values h2 {
+  color: white;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.about-story p {
+  color: #bbb;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.value-card {
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.value-card:hover {
+  transform: translateY(-5px);
+  border-color: #722F37;
+}
+
+.value-card h3 {
+  color: #C5A059;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.value-card p {
+  color: #999;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.about-cta {
+  margin-top: 3rem;
+  display: inline-block;
+  text-decoration: none;
+  padding: 0.9rem 2.5rem;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ==================== PAGINATION ==================== */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-bottom: 2rem;
+}
+
+.page-btn {
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #722F37;
+  border-color: #722F37;
+}
+
+.page-btn:disabled {
+  background: #111;
+  color: #444;
+  border-color: #222;
+  cursor: not-allowed;
+}
+
+/* --- NEW: Number Button Styles --- */
+.page-numbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.page-num-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.page-num-btn:hover:not(.active-page) {
+  border-color: #722F37;
+  color: #722F37;
+}
+
+/* The page you are currently on */
+.active-page {
+  background: #722F37;
+  border-color: #722F37;
+  color: white;
+  cursor: default;
+  transform: scale(1.1); /* Makes the active number slightly bigger */
+}
+
+/* ==================== NOTIFICATION DROPDOWN ==================== */
+.bell-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.notif-dropdown {
+  width: 320px !important;
+  right: 0 !important;
+  left: auto !important;
+  padding: 0 !important;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.notif-header button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.notif-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.notif-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #222;
+  font-size: 0.85rem;
+  color: #ccc;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notif-item:hover {
+  background: #252525;
+}
+
+.notif-item.unread {
+  background: rgba(114, 47, 55, 0.2);
+  border-left: 3px solid #722F37;
+  color: white;
+}
+
+/* Orders Link in Navbar */
+.orders-link {
+  transition: color 0.3s;
+}
+
+/* ==================== ORDERS PAGE ==================== */
+.orders-page {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  color: white;
+}
+
+.order-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.order-items-list {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.order-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #222;
+  padding: 0.5rem;
+  border-radius: 8px;
+  min-width: 180px;
+}
+
+.order-item-mini img {
+  width: 40px;
+  height: 60px;
+  object-fit: contain;
+  background: #141414;
+  border-radius: 4px;
+}
+
+/* Timeline Tracker */
+.tracker-timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 1rem;
+  position: relative;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  width: 60px;
+  text-align: center;
+}
+
+.step-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #252525;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s;
+}
+
+.timeline-step.active .step-icon {
+  background: #722F37;
+  color: white;
+}
+
+.step-text p {
+  font-size: 0.8rem;
+  color: #555;
+  font-weight: bold;
+}
+
+.step-text span {
+  font-size: 0.7rem;
+  color: #444;
+}
+
+.timeline-step.active .step-text p,
+.timeline-step.active .step-text span {
+  color: #ccc;
+}
+
+.timeline-line {
+  position: absolute;
+  top: 17px;
+  left: 40px;
+  right: 40px;
+  height: 2px;
+  background: #333;
+  z-index: 1;
+}
+
+.timeline-line.active {
+  background: #722F37;
+}
+
+/* ==================== PREMIUM ANIMATIONS ==================== */
+
+/* 1. Smooth Page Transitions */
+.main {
+  animation: pageFadeIn 0.4s ease-out;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 2. Navbar Slide Down */
+.navbar {
+  animation: navSlideDown 0.6s ease-out;
+}
+@keyframes navSlideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 3. Hero Section Elegant Text Entrance */
+.hero-section h1 {
+  animation: heroTextIn 1s ease-out;
+}
+.hero-section p {
+  animation: heroTextIn 1s ease-out 0.2s backwards; /* 0.2s delay */
+}
+.hero-section .search-bar {
+  animation: heroTextIn 1s ease-out 0.4s backwards; /* 0.4s delay */
+}
+@keyframes heroTextIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 4. Staggered Wine Cards Entrance (Up to 12 per page) */
+.wine-card {
+  opacity: 0;
+  animation: cardSlideUp 0.6s ease-out forwards;
+}
+.wine-card:nth-child(1) { animation-delay: 0.05s; }
+.wine-card:nth-child(2) { animation-delay: 0.1s; }
+.wine-card:nth-child(3) { animation-delay: 0.15s; }
+.wine-card:nth-child(4) { animation-delay: 0.2s; }
+.wine-card:nth-child(5) { animation-delay: 0.25s; }
+.wine-card:nth-child(6) { animation-delay: 0.3s; }
+.wine-card:nth-child(7) { animation-delay: 0.35s; }
+.wine-card:nth-child(8) { animation-delay: 0.4s; }
+.wine-card:nth-child(9) { animation-delay: 0.45s; }
+.wine-card:nth-child(10) { animation-delay: 0.5s; }
+.wine-card:nth-child(11) { animation-delay: 0.55s; }
+.wine-card:nth-child(12) { animation-delay: 0.6s; }
+
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 5. Upgraded Hover Effects (Subtle Glow) */
+.wine-card:hover {
+  transform: translateY(-8px) !important; /* Slightly higher lift */
+  box-shadow: 0 12px 30px rgba(114, 47, 55, 0.3) !important; /* Wine Red Glow */
+  border-color: rgba(114, 47, 55, 0.5) !important;
+}
+
+/* 6. Button Lift & Glow on Hover */
+.auth-btn:hover, 
+.checkout-btn:hover, 
+.add-to-cart-large:hover, 
+.continue-shopping-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(114, 47, 55, 0.4);
+  transition: all 0.3s ease;
+}
+
+/* 7. Review Card Entrance */
+.review-card, .value-card {
+  animation: cardSlideUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+.review-card:nth-child(2), .value-card:nth-child(2) { animation-delay: 0.1s; }
+.review-card:nth-child(3), .value-card:nth-child(3) { animation-delay: 0.2s; }
+.review-card:nth-child(4), .value-card:nth-child(4) { animation-delay: 0.3s; }
+
+/* 8. Footer Slide Up */
+.footer-container {
+  animation: cardSlideUp 0.8s ease-out;
+}
+
+/* ==================== ADMIN DASHBOARD ==================== */
+.admin-dashboard {
+  max-width: 1300px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  color: white;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  padding: 1.5rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: bold;
+  font-family: 'Playfair Display', serif;
+}
+
+.stat-label {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.admin-tables-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.admin-table-container {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.admin-table-container h3 {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 0.75rem;
+}
+
+.empty-table {
+  color: #666;
+  text-align: center;
+  padding: 2rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  text-align: left;
+  color: #888;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.75rem;
+  border-bottom: 1px solid #333;
+}
+
+.admin-table td {
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  color: #ccc;
+  border-bottom: 1px solid #222;
+}
+
+.admin-table tr:hover td {
+  background: #252525;
+}
+
+.badge-active {
+  background: rgba(39, 174, 96, 0.2);
+  color: #27ae60;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .admin-tables-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==================== REFRESH BUTTON ==================== */
+.refresh-btn {
+  background: #252525;
+  border: 1px solid #333;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+  background: #333;
+  border-color: #C5A059;
+  color: #C5A059;
+}
+
+/* ==================== ADMIN NAVBAR ==================== */
+.admin-navbar {
+  background: #0a0a0a;
+  border-bottom: 1px solid #222;
+  padding: 0.8rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.admin-navbar-left, .admin-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.admin-navbar .navbar-brand {
+  font-size: 1.2rem;
+}
+
+.admin-badge-nav {
+  font-size: 0.6rem;
+  background: #722F37;
+  color: white;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  vertical-align: middle;
+  letter-spacing: 1px;
+  font-family: 'Raleway', sans-serif;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #888;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.admin-nav-link:hover, .admin-nav-link.active {
+  color: white;
+  background: #1a1a1a;
+}
+
+.admin-nav-btn {
+  background: transparent;
+  border: 1px solid #333;
+  color: #ccc;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.admin-nav-btn:hover {
+  border-color: #C5A059;
+  color: #C5A059;
+}
+
+.admin-nav-btn.logout:hover {
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+/* ==================== ADMIN FOOTER ==================== */
+.admin-footer {
+  background: #050505;
+  border-top: 1px solid #1a1a1a;
+  text-align: center;
+  padding: 1.5rem 2rem;
+  color: #555;
+  font-size: 0.85rem;
+  margin-top: auto;
+}
+
+/* ==================== ADMIN STATUS DROPDOWN ==================== */
+.status-select {
+  background: #252525;
+  color: white;
+  border: 1px solid #444;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.status-select:focus {
+  border-color: #C5A059;
+}
+
+.status-select option {
+  background: #1a1a1a;
+  color: white;
+  padding: 10px;
+}
+
+/* ==================== NOTIFICATION IMAGE STYLES ==================== */
+.notif-item {
+  display: flex !important;       /* Forces a row layout */
+  align-items: center !important; /* Centers image and text vertically */
+  gap: 0.75rem !important;        /* Space between image and text */
+  padding: 0.75rem 1rem !important;
+}
+
+.notif-image {
+  width: 35px;
+  height: 50px;
+  object-fit: contain;
+  background: #141414;
+  border-radius: 4px;
+  flex-shrink: 0; /* Prevents image from squishing */
+}
+
+.notif-content-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.notif-wine-name {
+  color: #C5A059; /* Gold color for the wine name */
+  font-size: 0.85rem;
+  display: block;
+}
+
+.notif-content-text p {
+  color: #aaa;
+  font-size: 0.8rem;
+  margin: 0;
 }
