@@ -47,9 +47,9 @@ const Cart = () => {
             <span>Total</span>
             <span>${cartTotal.toFixed(2)}</span>
           </div>
-          <button className="checkout-btn">
+          <Link to="/checkout" className="checkout-btn">
             Proceed to Checkout
-          </button>
+          </Link>
           <Link to="/" className="continue-shopping-link">
             Continue Shopping
           </Link>

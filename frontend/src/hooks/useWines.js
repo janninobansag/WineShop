@@ -1,9 +1,16 @@
 import { useState, useCallback } from 'react';
 import wineApi from '../services/wineApi';
 
+// Helper to get rating from LocalStorage for filtering
+const getCalculatedRating = (id) => {
+  const reviews = JSON.parse(localStorage.getItem(`reviews_${id}`) || '[]');
+  if (reviews.length === 0) return 0;
+  return Math.min(5, reviews.reduce((acc, curr) => acc + parseFloat(curr.rating || 0), 0) / reviews.length);
+};
+
 const useWines = () => {
-  const [wines, setWines] = useState([]);       // What user sees (filtered/sorted)
-  const [allWines, setAllWines] = useState([]); // Original full list from API
+  const [wines, setWines] = useState([]);       
+  const [allWines, setAllWines] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -21,7 +28,6 @@ const useWines = () => {
     }
   }, []);
 
-  // Instant frontend search
   const searchWines = (query) => {
     if (!query) { setWines(allWines); return; }
     const filtered = allWines.filter(wine => 
@@ -31,7 +37,6 @@ const useWines = () => {
     setWines(filtered);
   };
 
-  // Instant frontend sort
   const sortByPrice = (order) => {
     const sorted = [...allWines].sort((a, b) => {
       return order === 'asc' 
@@ -41,15 +46,27 @@ const useWines = () => {
     setWines(sorted);
   };
 
-  // Instant frontend filter
-  const filterByRating = (minRating) => {
-    const filtered = allWines.filter(wine => {
-      return parseFloat(wine.rating?.average) >= parseFloat(minRating);
-    });
+  // NEW: Filter by real user rating
+  const filterByRating = (minStars) => {
+    const filtered = allWines.filter(wine => getCalculatedRating(wine.id) >= minStars);
     setWines(filtered);
   };
 
-  return { wines, loading, error, fetchByCategory, searchWines, sortByPrice, filterByRating };
+  // NEW: Filter by price range
+  const filterByPrice = (range) => {
+    let filtered = [...allWines];
+    if (range === 'under25') filtered = filtered.filter(w => parseFloat(w.price) < 25);
+    else if (range === '25to40') filtered = filtered.filter(w => parseFloat(w.price) >= 25 && parseFloat(w.price) <= 40);
+    else if (range === 'over40') filtered = filtered.filter(w => parseFloat(w.price) > 40);
+    setWines(filtered);
+  };
+
+  // NEW: Reset all filters
+  const clearFilters = () => {
+    setWines(allWines);
+  };
+
+  return { wines, loading, error, fetchByCategory, searchWines, sortByPrice, filterByRating, filterByPrice, clearFilters };
 };
 
 export default useWines;

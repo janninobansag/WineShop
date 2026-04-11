@@ -25,3 +25,12 @@ npm start
 step 2: open new terminal and type this
 cd frontend
 npm start
+
+
+TO OPEN AMIN ACCOUNT
+http://localhost:3000/admin
+
+-make sure to add /admin to the end of the url
+
+admin username: admin@wineshop.com
+admin password: admin123
