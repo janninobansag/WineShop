@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FiStar, FiShoppingCart, FiArrowLeft } from 'react-icons/fi';
 import wineApi from '../services/wineApi';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext'; // <-- THIS WAS MISSING
 import { toast } from 'react-toastify';
 import Loader from '../components/Loader';
 import '../App.css';
 
 const WineDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate(); // <-- THIS WAS MISSING
   const [wine, setWine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth(); // <-- THIS WAS MISSING
 
   useEffect(() => {
     const fetchWine = async () => {
@@ -30,6 +34,12 @@ const WineDetail = () => {
   }, [id]);
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast.error("Please log in to add items to your cart.");
+      navigate('/login');
+      return;
+    }
+
     addToCart(wine);
     toast.success(`${wine.wine} added to cart!`);
   };

@@ -177,7 +177,7 @@ body {
 .hero-section p {
   opacity: 0.8;
   margin-bottom: 2rem;
-  color: #C5A059; /* Gold Subtitle */
+  color: #ffffff; /* Gold Subtitle */
 }
 
 /* ==================== SEARCH BAR ==================== */
@@ -363,7 +363,7 @@ body {
 }
 
 .add-to-cart-btn:hover {
-  background: #8B0000;
+  background: #070707;
 }
 
 .wine-info {
@@ -825,4 +825,144 @@ body {
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+
+/* ==================== AUTH PAGES ==================== */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem;
+}
+
+.auth-form {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  padding: 2.5rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-form h1 {
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #888;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  color: #ccc;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #722F37;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: #722F37;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.auth-btn:hover {
+  background: #8B0000;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.auth-switch a {
+  color: #C5A059;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Navbar Auth Buttons */
+.auth-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.register-link {
+  background: #722F37;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  transition: background 0.3s !important;
+}
+
+.register-link:hover {
+  background: #8B0000 !important;
+  color: white !important;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-greeting {
+  color: #C5A059;
+  font-size: 0.9rem;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.logout-btn:hover {
+  color: #ff4444;
+}
+
+/* ==================== AUTH ERROR MESSAGE ==================== */
+.auth-error {
+  background: rgba(139, 0, 0, 0.2);
+  border: 1px solid #8B0000;
+  color: #ff6b6b;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }

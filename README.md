@@ -14,3 +14,14 @@ NODE_ENV=development
 
 File 2: frontend/.env
 REACT_APP_API_URL=http://localhost:5000/api
+
+
+AFTER INSTALLING AND STTING UP ALL OF THEN:
+
+step 1: open new terminal and type this
+cd backend
+npm start
+
+step 2: open new terminal and type this
+cd frontend
+npm start
