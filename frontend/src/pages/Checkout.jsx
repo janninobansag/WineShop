@@ -44,8 +44,10 @@ const Checkout = () => {
       items: cart,
       total: cartTotal,
       status: 1,
-      customerEmail: user.email, // NEW: Track who ordered
-      customerName: user.name    // NEW: Track who ordered
+      customerEmail: user.email,
+      customerName: user.name,
+      shippingInfo: formData,       // NEW: Saves address, phone, zip, instructions
+      paymentMethod: paymentMethod  // NEW: Saves "Cash on Delivery"
     };
 
     // Save to user-specific key (e.g., orders_john@email.com)

@@ -2117,3 +2117,263 @@ body {
   font-size: 0.8rem;
   margin: 0;
 }
+
+/* ==================== CANCEL ORDER STYLES ==================== */
+
+/* User Side */
+.cancel-order-btn {
+  margin-top: 1.5rem;
+  width: 100%;
+  background: transparent;
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  padding: 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.cancel-order-btn:hover {
+  background: #ff4444;
+  color: white;
+}
+
+.status-badge {
+  text-align: center;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.pending-badge {
+  background: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.cancelled-badge {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.cancelled-order {
+  border-color: #333 !important;
+  background: #151515 !important;
+}
+
+/* Admin Side */
+.admin-confirm-cancel-btn {
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  animation: pulse 1.5s infinite;
+}
+
+.admin-confirm-cancel-btn:hover {
+  background: #ff4444;
+  color: white;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+}
+
+.badge-cancelled {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.cancelled-table-row td {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* ==================== ADMIN CANCEL ACTIONS ==================== */
+.admin-cancel-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-decline-cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #888;
+  color: #ccc;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.admin-decline-cancel-btn:hover {
+  background: #888;
+  color: white;
+}
+
+/* ==================== ADMIN EDIT/DELETE USERS ==================== */
+.admin-edit-input {
+  background: #252525;
+  border: 1px solid #C5A059;
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100%;
+  outline: none;
+}
+
+.admin-action-btn {
+  background: transparent;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.2s;
+}
+
+.admin-action-btn.edit:hover {
+  border-color: #C5A059;
+  color: #C5A059;
+}
+
+.admin-action-btn.delete:hover {
+  border-color: #ff4444;
+  color: #ff4444;
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.admin-action-btn.save {
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+.admin-action-btn.save:hover {
+  background: #27ae60;
+  color: white;
+}
+
+.admin-action-btn.cancel-edit:hover {
+  border-color: white;
+  color: white;
+}
+
+/* ==================== EXPANDED USER EDIT FORM ==================== */
+.badge-admin-role {
+  background: rgba(114, 47, 55, 0.3);
+  color: #ff6b6b;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  margin-left: 0.5rem;
+  letter-spacing: 1px;
+  font-family: 'Raleway', sans-serif;
+}
+
+.expanded-edit-form {
+  background: #252525;
+  padding: 1.5rem;
+  border-top: 1px solid #333;
+  animation: pageFadeIn 0.2s ease-out;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.expanded-edit-form .form-group label {
+  display: block;
+  color: #888;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.admin-edit-input {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.admin-edit-input:focus {
+  border-color: #C5A059;
+}
+
+.admin-edit-input option {
+  background: #1a1a1a;
+}
+
+/* ==================== EXPANDED ORDER INFO ==================== */
+.expanded-order-info {
+  background: #252525;
+  padding: 1.5rem;
+  border-top: 1px solid #333;
+  animation: pageFadeIn 0.2s ease-out;
+}
+
+.shipping-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+}
+
+.shipping-col h4 {
+  color: #C5A059;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.shipping-col p {
+  color: #ccc;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+  word-break: break-word; /* Prevents long addresses from breaking layout */
+}
+
+.shipping-col strong {
+  color: #888;
+}
+
+.shipping-notes {
+  background: #1a1a1a;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  font-style: italic;
+}

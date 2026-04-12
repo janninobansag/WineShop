@@ -6,20 +6,20 @@ import '../App.css';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // Added error state
+  const [error, setError] = useState('');
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError('');
     
     const result = loginUser(email, password);
     
     if (result.success) {
       navigate('/'); 
     } else {
-      setError(result.message); // Show the error message
+      setError(result.message); // Will show "Admins must log in via the Admin Portal."
     }
   };
 
@@ -29,7 +29,6 @@ const Login = () => {
         <h1>Welcome Back</h1>
         <p className="auth-subtitle">Log in to your WineShop account</p>
         
-        {/* Error Message Box */}
         {error && <div className="auth-error">{error}</div>}
         
         <div className="form-group">
