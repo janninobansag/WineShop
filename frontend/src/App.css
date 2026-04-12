@@ -1,3 +1,103 @@
+/* ==================== COOL MICRO-DESIGNS ==================== */
+
+/* 1. Custom Highlight Color (Drag your mouse over text to see this) */
+::selection {
+  background: rgba(107, 39, 55, 0.4); /* Burgundy highlight */
+  color: white;
+}
+
+/* 2. Custom Scrollbar (Replaces the ugly default Windows one) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #111;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 3. Gradient Gold Text for Hero Titles */
+.hero-section h1 {
+  background: linear-gradient(90deg, #ffffff, #C5A059, #ffffff);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerText 3s linear infinite;
+}
+
+@keyframes shimmerText {
+  to { background-position: 200% center; }
+}
+
+/* 4. Glowing Borders on Wine Cards */
+.wine-card {
+  position: relative;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* The magic glowing border layer */
+.wine-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  padding: 2px;
+  background: linear-gradient(45deg, #C5A059, #722F37, #C5A059);
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.4s ease;
+  z-index: -1; /* Keeps it behind the card content */
+}
+
+/* Show the glow when hovering */
+.wine-card:hover::before {
+  opacity: 1;
+}
+
+/* 5. Subtle 3D Lift on ALL Buttons */
+.auth-btn, .checkout-btn, .add-to-cart-large, .search-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Fix specific buttons that are actually links */
+.continue-shopping-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Shine sweep effect on hover */
+.auth-btn::after, .checkout-btn::after, .add-to-cart-large::after, .continue-shopping-btn::after, .search-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 20%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.15);
+  transform: rotate(25deg);
+  transition: left 0.5s ease;
+}
+
+.auth-btn:hover::after, .checkout-btn:hover::after, .add-to-cart-large:hover::after, .continue-shopping-btn:hover::after, .search-btn::after {
+  left: 120%;
+}
+
+/* 6. Soft Glow on Stars */
+.star-icon {
+  filter: drop-shadow(0 0 3px rgba(197, 160, 89, 0.5));
+}
+
+/* 7. Soft Neon Glow on Price Text */
+.wine-price {
+  text-shadow: 0 0 8px rgba(197, 160, 89, 0.3);
+}
 /* ==================== GLOBAL FONTS ==================== */
 body {
   font-family: 'Raleway', sans-serif;
@@ -349,6 +449,7 @@ body {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
   border-color: #722F37;
+  transform: translateY(-8px) scale(1.01); 
 }
 
 .wine-image {
@@ -669,19 +770,20 @@ body {
 }
 
 .clear-cart-btn {
-  background: none;
-  border: 1px solid #8B0000;
-  color: #8B0000;
+  background: #dc3545; /* Bright, solid red */
+  color: white;
+  border: 1px solid #dc3545;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   cursor: pointer;
   margin-top: 1rem;
+  font-weight: 500;
   transition: all 0.3s;
 }
 
 .clear-cart-btn:hover {
-  background: #8B0000;
-  color: white;
+  background: #a71d2a; /* Darker red on hover */
+  border-color: #a71d2a;
 }
 
 /* ==================== CART SUMMARY ==================== */
@@ -1776,6 +1878,7 @@ body {
 .wine-card {
   opacity: 0;
   animation: cardSlideUp 0.6s ease-out forwards;
+  
 }
 .wine-card:nth-child(1) { animation-delay: 0.05s; }
 .wine-card:nth-child(2) { animation-delay: 0.1s; }
@@ -2377,3 +2480,4 @@ body {
   margin-top: 0.5rem;
   font-style: italic;
 }
+
