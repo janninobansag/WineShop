@@ -39,9 +39,11 @@ const Footer = () => {
         {/* Column 4: Contact */}
         <div className="footer-col">
           <h4>Contact Us</h4>
-          <p>📍 123 Vine Street, Napa Valley, CA</p>
-          <p>📧 support@wineshop.com</p>
-          <p>📞 +1 (555) 123-4567</p>
+          <p>📧 kimuelldano@gmail.com</p>
+          <p>📧 janninobansag@gmail.com</p>
+          <p>📧 akisato203@gmail.com</p>
+          <p>📧 richarddean.segovia1@gmail.com</p>
+          <p>📞 +63 949 798 7581</p>
         </div>
 
       </div>
