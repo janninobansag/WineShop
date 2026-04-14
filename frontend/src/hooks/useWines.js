@@ -37,8 +37,9 @@ const useWines = () => {
     setWines(filtered);
   };
 
+  // FIXED: Sort by price - now sorts the current filtered wines (wines) instead of allWines
   const sortByPrice = (order) => {
-    const sorted = [...allWines].sort((a, b) => {
+    const sorted = [...wines].sort((a, b) => {
       return order === 'asc' 
         ? parseFloat(a.price) - parseFloat(b.price) 
         : parseFloat(b.price) - parseFloat(a.price);
@@ -46,13 +47,13 @@ const useWines = () => {
     setWines(sorted);
   };
 
-  // NEW: Filter by real user rating
+  // Filter by real user rating
   const filterByRating = (minStars) => {
     const filtered = allWines.filter(wine => getCalculatedRating(wine.id) >= minStars);
     setWines(filtered);
   };
 
-  // NEW: Filter by price range
+  // Filter by price range
   const filterByPrice = (range) => {
     let filtered = [...allWines];
     if (range === 'under25') filtered = filtered.filter(w => parseFloat(w.price) < 25);
@@ -61,7 +62,7 @@ const useWines = () => {
     setWines(filtered);
   };
 
-  // NEW: Reset all filters
+  // Reset all filters
   const clearFilters = () => {
     setWines(allWines);
   };

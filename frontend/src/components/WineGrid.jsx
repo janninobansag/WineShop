@@ -1,7 +1,7 @@
+// frontend/src/components/WineGrid.jsx
 import React from 'react';
-import WineCard from './WineCard';
+import FlipWineCard from './FlipWineCard';
 import Loader from './Loader';
-import '../App.css';
 
 const WineGrid = ({ wines, loading, error }) => {
   if (loading) return <Loader />;
@@ -14,7 +14,7 @@ const WineGrid = ({ wines, loading, error }) => {
     );
   }
 
-  if (wines.length === 0) {
+  if (!wines || wines.length === 0) {
     return (
       <div className="no-results">
         <p>🍷 No wines found</p>
@@ -25,7 +25,7 @@ const WineGrid = ({ wines, loading, error }) => {
   return (
     <div className="wine-grid">
       {wines.map((wine) => (
-        <WineCard key={wine.id} wine={wine} />
+        <FlipWineCard key={wine.id} wine={wine} />
       ))}
     </div>
   );

@@ -2481,3 +2481,379 @@ body {
   font-style: italic;
 }
 
+/* ==================== 3D FLIP CARD EFFECT ==================== */
+.flip-card {
+  background-color: transparent;
+  width: 100%;
+  height: 450px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+  border-radius: 16px;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  overflow: hidden;
+}
+
+.flip-card-front {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%);
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+}
+
+.flip-card-front .wine-image {
+  position: relative;
+  height: 280px;
+  background-color: #141414;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.flip-card-front .wine-image img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  padding: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.flip-card:hover .flip-card-front .wine-image img {
+  transform: scale(1.05);
+}
+
+.flip-card-front .wine-info {
+  padding: 1rem;
+  flex: 1;
+}
+
+.flip-card-front .wine-name {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.flip-card-front .winery {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.flip-card-front .wine-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.flip-card-front .wine-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.flip-card-front .wine-price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #C5A059;
+}
+
+.flip-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.6);
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  color: #C5A059;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.flip-card:hover .flip-hint {
+  opacity: 1;
+}
+
+.flip-card-back h3 {
+  color: #C5A059;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.flip-card-back .wine-description {
+  color: #ccc;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 1rem;
+  max-height: 100px;
+  overflow-y: auto;
+  padding: 0 0.5rem;
+}
+
+.flip-card-back .wine-details-list {
+  width: 100%;
+  margin: 1rem 0;
+  padding: 0 1rem;
+}
+
+.flip-card-back .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 0.85rem;
+}
+
+.flip-card-back .detail-label {
+  color: #888;
+  font-weight: bold;
+}
+
+.flip-card-back .detail-value {
+  color: #C5A059;
+}
+
+.flip-card-back .wine-price-back {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #C5A059;
+  margin: 0.5rem 0;
+}
+
+.flip-card-back .add-to-cart-flip {
+  background: #722F37;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.flip-card-back .add-to-cart-flip:hover {
+  background: #8B0000;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(114, 47, 55, 0.4);
+}
+
+.flip-card-back .view-details-link {
+  color: #888;
+  text-decoration: none;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  transition: color 0.3s;
+}
+
+.flip-card-back .view-details-link:hover {
+  color: #C5A059;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flip-card {
+    height: 400px;
+  }
+  
+  .flip-card-back {
+    padding: 1rem;
+  }
+  
+  .flip-card-back .wine-description {
+    font-size: 0.8rem;
+    max-height: 80px;
+  }
+  
+  .flip-card-back .detail-item {
+    font-size: 0.75rem;
+    padding: 0.3rem 0;
+  }
+  
+  .flip-card-back .add-to-cart-flip {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Animation for cards appearing */
+.flip-card {
+  opacity: 0;
+  animation: cardFlipIn 0.6s ease-out forwards;
+}
+
+@keyframes cardFlipIn {
+  from {
+    opacity: 0;
+    transform: perspective(1000px) rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1000px) rotateY(0deg);
+  }
+}
+
+/* Staggered animation for multiple cards */
+.flip-card:nth-child(1) { animation-delay: 0.05s; }
+.flip-card:nth-child(2) { animation-delay: 0.1s; }
+.flip-card:nth-child(3) { animation-delay: 0.15s; }
+.flip-card:nth-child(4) { animation-delay: 0.2s; }
+.flip-card:nth-child(5) { animation-delay: 0.25s; }
+.flip-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* ==================== REVIEW PAGINATION STYLES ==================== */
+.review-pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem 0;
+}
+
+.review-page-btn {
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.review-page-btn:hover:not(:disabled) {
+  background: #722F37;
+  border-color: #722F37;
+  transform: translateY(-2px);
+}
+
+.review-page-btn:disabled {
+  background: #111;
+  color: #444;
+  border-color: #222;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.review-page-numbers {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.review-page-num-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.review-page-num-btn:hover:not(.active-review-page) {
+  border-color: #722F37;
+  color: #722F37;
+  transform: translateY(-2px);
+}
+
+.active-review-page {
+  background: #722F37;
+  border-color: #722F37;
+  color: white;
+  cursor: default;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(114, 47, 55, 0.4);
+}
+
+.review-page-ellipsis {
+  color: #666;
+  padding: 0 0.25rem;
+  font-size: 1rem;
+}
+
+/* Review card enhancements */
+.review-date {
+  display: block;
+  color: #666;
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .review-pagination-container {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .review-page-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .review-page-num-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+  
+  .review-page-numbers {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+}

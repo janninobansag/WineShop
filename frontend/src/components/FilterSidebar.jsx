@@ -9,6 +9,7 @@ const FilterSidebar = ({ onSort, onFilterRating, onFilterPrice, onClearFilters }
     setActiveFilter(`${filterType}-${value}`);
     if (filterType === 'rating') onFilterRating(value);
     if (filterType === 'price') onFilterPrice(value);
+    if (filterType === 'sort') onSort(value); // <-- THIS IS THE LINE THAT WAS MISSING
   };
 
   const handleClear = () => {
