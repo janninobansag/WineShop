@@ -1,4 +1,3 @@
-// frontend/src/components/WineGrid.jsx
 import React from 'react';
 import FlipWineCard from './FlipWineCard';
 import Loader from './Loader';
@@ -25,7 +24,7 @@ const WineGrid = ({ wines, loading, error }) => {
   return (
     <div className="wine-grid">
       {wines.map((wine) => (
-        <FlipWineCard key={wine.id} wine={wine} />
+        <FlipWineCard key={wine._id || wine.id} wine={wine} />
       ))}
     </div>
   );

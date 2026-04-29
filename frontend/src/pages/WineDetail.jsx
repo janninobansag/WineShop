@@ -1,4 +1,3 @@
-// frontend/src/pages/WineDetail.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FiStar, FiShoppingCart, FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
@@ -19,54 +18,61 @@ const WineDetail = () => {
   const { isAuthenticated, user } = useAuth();
   const { addNotification } = useNotification();
 
-  // Reviews State
+  // Reviews State - Now from MongoDB
   const [userReviews, setUserReviews] = useState([]);
   const [reviewText, setReviewText] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const reviewsPerPage = 3; // Show 3 reviews per page
+  const reviewsPerPage = 3;
 
-  // Calculate average rating
-  const calculatedRating = userReviews.length > 0 
-    ? (userReviews.reduce((acc, curr) => acc + (curr.rating || 0), 0) / userReviews.length).toFixed(1)
-    : "0.0";
+  // Calculate average rating from wine data
+  const calculatedRating = wine?.rating?.average || 0;
+  const totalReviews = wine?.rating?.reviews || 0;
 
   // Pagination calculations
-  const totalReviews = userReviews.length;
-  const totalPages = Math.ceil(totalReviews / reviewsPerPage);
+  const totalPages = Math.ceil(userReviews.length / reviewsPerPage);
   const indexOfLastReview = currentPage * reviewsPerPage;
   const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
   const currentReviews = userReviews.slice(indexOfFirstReview, indexOfLastReview);
 
-  // Reset to first page when reviews change
   useEffect(() => {
     setCurrentPage(1);
   }, [userReviews.length]);
 
   useEffect(() => {
-    const fetchWine = async () => {
+    const fetchWineAndReviews = async () => {
+      if (!id) {
+        setError('Wine ID is missing');
+        setLoading(false);
+        return;
+      }
+      
       try {
         setLoading(true);
-        const data = await wineApi.getWineById(id);
-        setWine(data.data);
         
-        // Load reviews from localStorage using wine ID
-        const savedReviews = localStorage.getItem(`reviews_${id}`);
-        if (savedReviews) {
-          setUserReviews(JSON.parse(savedReviews));
-        } else {
-          setUserReviews([]);
+        // Fetch wine details from MongoDB
+        const wineData = await wineApi.getWineById(id);
+        if (wineData && wineData.data) {
+          setWine(wineData.data);
         }
+        
+        // Fetch reviews from MongoDB
+        const reviews = await wineApi.getReviewsByWine(id);
+        setUserReviews(reviews || []);
+        
       } catch (err) {
-        setError(err.message);
+        console.error('Error fetching data:', err);
+        setError(err.message || 'Failed to load wine');
       } finally {
         setLoading(false);
       }
     };
-    fetchWine();
+    
+    fetchWineAndReviews();
   }, [id]);
 
   const handleAddToCart = () => {
@@ -85,7 +91,7 @@ const WineDetail = () => {
     );
   };
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     
     if (!isAuthenticated) {
@@ -103,45 +109,57 @@ const WineDetail = () => {
       addNotification('Please write a review', 'error', null, null);
       return;
     }
-
-    const newReview = {
-      id: Date.now(),
-      name: user?.name || user?.email || "Anonymous",
-      rating: reviewRating,
-      text: reviewText,
-      date: new Date().toLocaleDateString()
-    };
-
-    const updatedReviews = [newReview, ...userReviews];
-    setUserReviews(updatedReviews);
-    localStorage.setItem(`reviews_${id}`, JSON.stringify(updatedReviews));
     
-    // Reset form
-    setReviewText('');
-    setReviewRating(0);
-    setHoverRating(0);
+    setSubmitting(true);
     
-    addNotification(`Your review for ${wine.wine} has been posted!`, 'success', wine.image, wine.wine);
+    try {
+      // Get token from wherever you store it
+      const token = localStorage.getItem('authToken');
+      
+      // Add review to MongoDB
+      await wineApi.addReview(id, reviewRating, reviewText, token);
+      
+      // Refresh reviews
+      const updatedReviews = await wineApi.getReviewsByWine(id);
+      setUserReviews(updatedReviews || []);
+      
+      // Refresh wine data to get updated rating
+      const updatedWine = await wineApi.getWineById(id);
+      if (updatedWine && updatedWine.data) {
+        setWine(updatedWine.data);
+      }
+      
+      // Reset form
+      setReviewText('');
+      setReviewRating(0);
+      setHoverRating(0);
+      
+      addNotification(`Your review for ${wine.wine} has been posted!`, 'success', wine.image, wine.wine);
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      addNotification(err.message || 'Failed to submit review', 'error', null, null);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  // Pagination handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
-      window.scrollTo({ top: document.querySelector('.reviews-section').offsetTop - 100, behavior: 'smooth' });
+      window.scrollTo({ top: document.querySelector('.reviews-section')?.offsetTop - 100, behavior: 'smooth' });
     }
   };
 
   const goToPreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      window.scrollTo({ top: document.querySelector('.reviews-section').offsetTop - 100, behavior: 'smooth' });
+      window.scrollTo({ top: document.querySelector('.reviews-section')?.offsetTop - 100, behavior: 'smooth' });
     }
   };
 
   const goToPage = (pageNumber) => {
     setCurrentPage(pageNumber);
-    window.scrollTo({ top: document.querySelector('.reviews-section').offsetTop - 100, behavior: 'smooth' });
+    window.scrollTo({ top: document.querySelector('.reviews-section')?.offsetTop - 100, behavior: 'smooth' });
   };
 
   if (loading) return <Loader />;
@@ -170,16 +188,17 @@ const WineDetail = () => {
           
           <div className="detail-rating">
             {[...Array(5)].map((_, i) => (
-              <FiStar key={i} className="star-icon" style={{ fill: i < parseFloat(calculatedRating) ? '#C5A059' : 'none' }} />
+              <FiStar key={i} className="star-icon" style={{ fill: i < calculatedRating ? '#C5A059' : 'none' }} />
             ))}
-            <span>{calculatedRating}</span>
-            <span className="reviews">({userReviews.length} reviews)</span>
+            <span>{calculatedRating.toFixed(1)}</span>
+            <span className="reviews">({totalReviews} reviews)</span>
           </div>
 
           <p className="detail-price">${price.toFixed(2)}</p>
           <div className="detail-meta">
             <p><strong>Location:</strong> {wine.location}</p>
-            <p><strong>Type:</strong> Red Wine</p>
+            <p><strong>Type:</strong> {wine.type || 'Red Wine'}</p>
+            {wine.vintage && <p><strong>Vintage:</strong> {wine.vintage}</p>}
           </div>
           <button className="add-to-cart-large" onClick={handleAddToCart}>
             <FiShoppingCart /> Add to Cart
@@ -194,65 +213,44 @@ const WineDetail = () => {
           <>
             <div className="reviews-grid">
               {currentReviews.map((review, index) => (
-                <div key={review.id || index} className="review-card user-review-card">
+                <div key={review._id || index} className="review-card">
                   <div className="review-header">
-                    <span className="reviewer-name">{review.name}</span>
+                    <span className="reviewer-name">{review.userName}</span>
                     <span className="reviewer-rating">
                       {[...Array(5)].map((_, i) => (
                         <FiStar key={i} className="star-icon" style={{ fill: i < review.rating ? '#C5A059' : 'none' }} />
                       ))}
                     </span>
                   </div>
-                  <p className="review-text">"{review.text}"</p>
-                  {review.date && <small className="review-date">{review.date}</small>}
+                  <p className="review-text">"{review.comment}"</p>
+                  <small className="review-date">{new Date(review.createdAt).toLocaleDateString()}</small>
                 </div>
               ))}
             </div>
 
-            {/* Pagination Component */}
             {totalPages > 1 && (
               <div className="review-pagination-container">
-                <button 
-                  onClick={goToPreviousPage}
-                  disabled={currentPage === 1}
-                  className="review-page-btn"
-                >
+                <button onClick={goToPreviousPage} disabled={currentPage === 1} className="review-page-btn">
                   <FiChevronLeft /> Previous
                 </button>
                 
                 <div className="review-page-numbers">
                   {[...Array(totalPages)].map((_, index) => {
                     const pageNum = index + 1;
-                    // Show limited page numbers with ellipsis for many pages
-                    if (
-                      pageNum === 1 ||
-                      pageNum === totalPages ||
-                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                    ) {
+                    if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
                       return (
-                        <button
-                          key={pageNum}
-                          onClick={() => goToPage(pageNum)}
-                          className={`review-page-num-btn ${currentPage === pageNum ? 'active-review-page' : ''}`}
-                        >
+                        <button key={pageNum} onClick={() => goToPage(pageNum)} className={`review-page-num-btn ${currentPage === pageNum ? 'active-review-page' : ''}`}>
                           {pageNum}
                         </button>
                       );
-                    } else if (
-                      (pageNum === currentPage - 2 && currentPage > 3) ||
-                      (pageNum === currentPage + 2 && currentPage < totalPages - 2)
-                    ) {
+                    } else if ((pageNum === currentPage - 2 && currentPage > 3) || (pageNum === currentPage + 2 && currentPage < totalPages - 2)) {
                       return <span key={pageNum} className="review-page-ellipsis">...</span>;
                     }
                     return null;
                   })}
                 </div>
                 
-                <button 
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                  className="review-page-btn"
-                >
+                <button onClick={goToNextPage} disabled={currentPage === totalPages} className="review-page-btn">
                   Next <FiChevronRight />
                 </button>
               </div>
@@ -261,47 +259,56 @@ const WineDetail = () => {
         ) : (
           <p style={{ color: '#888', marginBottom: '2rem' }}>No reviews yet. Be the first to review this wine!</p>
         )}
-
+      <br/>
         {/* Write a Review Form */}
-        <div className="write-review-box">
-          <h4>Write a Review</h4>
-          <form onSubmit={handleReviewSubmit} className="review-form">
-            <div className="form-group">
-              <label>Your Rating</label>
-              <div className="star-selector">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FiStar
-                    key={star}
-                    className="selectable-star"
-                    style={{ 
-                      color: star <= (hoverRating || reviewRating) ? "#C5A059" : "#444",
-                      cursor: 'pointer',
-                      fontSize: '1.5rem'
-                    }}
-                    onClick={() => setReviewRating(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                  />
-                ))}
+        {isAuthenticated ? (
+          <div className="write-review-box">
+            <h4>Write a Review</h4>
+            <form onSubmit={handleReviewSubmit} className="review-form">
+              <div className="form-group">
+                <label>Your Rating</label>
+                <div className="star-selector">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FiStar
+                      key={star}
+                      className="selectable-star"
+                      style={{ 
+                        color: star <= (hoverRating || reviewRating) ? "#C5A059" : "#444",
+                        cursor: 'pointer',
+                        fontSize: '1.5rem'
+                      }}
+                      onClick={() => setReviewRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label>Your Thoughts</label>
-              <textarea 
-                value={reviewText} 
-                onChange={(e) => setReviewText(e.target.value)}
-                required
-                placeholder="What did you think of this wine?"
-                className="checkout-textarea"
-                rows="4"
-              />
-            </div>
-            <button type="submit" className="auth-btn" style={{ width: 'fit-content', padding: '0.6rem 1.5rem' }}>
-              Submit Review
-            </button>
-          </form>
-        </div>
+              <div className="form-group">
+                <label>Your Thoughts</label>
+                <textarea 
+                  value={reviewText} 
+                  onChange={(e) => setReviewText(e.target.value)}
+                  required
+                  placeholder="What did you think of this wine?"
+                  className="checkout-textarea"
+                  rows="4"
+                  disabled={submitting}
+                />
+              </div>
+              <button type="submit" className="auth-btn" disabled={submitting} style={{ width: 'fit-content', padding: '0.6rem 1.5rem' }}>
+                {submitting ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="write-review-box">
+            <p style={{ textAlign: 'center', color: '#888' }}>
+              <Link to="/login">Log in</Link> to leave a review
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

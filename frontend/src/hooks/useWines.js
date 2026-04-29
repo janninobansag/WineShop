@@ -37,7 +37,7 @@ const useWines = () => {
     setWines(filtered);
   };
 
-  // FIXED: Sort by price - now sorts the current filtered wines (wines) instead of allWines
+  // FIXED: Sort by price - now sorts the current filtered wines
   const sortByPrice = (order) => {
     const sorted = [...wines].sort((a, b) => {
       return order === 'asc' 

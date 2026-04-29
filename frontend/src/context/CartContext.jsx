@@ -1,79 +1,133 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { useAuth } from './AuthContext'; // NEW: We need to know who is logged in
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getCart, addToCart as apiAddToCart, updateCartItem, removeFromCart, clearCart as apiClearCart } from '../services/cartApi';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
-const cartReducer = (state, action) => {
-  switch (action.type) {
-    case 'ADD_TO_CART': {
-      const existingIndex = state.items.findIndex((item) => item.id === action.payload.id);
-      if (existingIndex >= 0) {
-        const updatedItems = [...state.items];
-        updatedItems[existingIndex].quantity += 1;
-        return { ...state, items: updatedItems };
-      }
-      return { ...state, items: [...state.items, { ...action.payload, quantity: 1 }] };
-    }
-    case 'REMOVE_FROM_CART':
-      return { ...state, items: state.items.filter((item) => item.id !== action.payload) };
-    case 'UPDATE_QUANTITY': {
-      const updatedItems = state.items.map((item) =>
-        item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item
-      );
-      return { ...state, items: updatedItems };
-    }
-    case 'CLEAR_CART':
-      return { ...state, items: [] };
-    case 'LOAD_CART': // NEW: Force load a specific cart from localStorage
-      return { ...state, items: action.payload };
-    default:
-      return state;
-  }
-};
-
 export const CartProvider = ({ children }) => {
-  const { user } = useAuth(); // NEW: Get current user
-  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [cartItems, setCartItems] = useState([]); // Start with empty array
+  const [cartCount, setCartCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
-  // NEW: When user logs in or out, load THEIR specific cart
+  // Load cart from MongoDB when user logs in
   useEffect(() => {
-    if (user) {
-      const userCartKey = `cart_${user.email}`;
-      const savedCart = localStorage.getItem(userCartKey);
-      const parsedCart = savedCart ? JSON.parse(savedCart) : [];
-      dispatch({ type: 'LOAD_CART', payload: parsedCart });
+    if (isAuthenticated) {
+      loadCart();
     } else {
-      // If user logs out, clear the cart from the screen
-      dispatch({ type: 'CLEAR_CART' });
+      setCartItems([]);
+      setCartCount(0);
+      setCartTotal(0);
+      setLoading(false);
     }
-  }, [user?.email]); // Trigger this effect when the email changes
+  }, [isAuthenticated]);
 
-  // NEW: Every time the cart changes, save it to THAT user's specific folder
-  useEffect(() => {
-    if (user) {
-      const userCartKey = `cart_${user.email}`;
-      localStorage.setItem(userCartKey, JSON.stringify(state.items));
+  const loadCart = async () => {
+    try {
+      setLoading(true);
+      const cart = await getCart();
+      const items = cart?.items || [];
+      setCartItems(items);
+      
+      const count = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      setCartCount(count);
+      
+      const total = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+      setCartTotal(total);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      setCartItems([]);
+      setCartCount(0);
+      setCartTotal(0);
+    } finally {
+      setLoading(false);
     }
-  }, [state.items, user?.email]);
-
-  const addToCart = (wine) => dispatch({ type: 'ADD_TO_CART', payload: wine });
-  const removeFromCart = (id) => dispatch({ type: 'REMOVE_FROM_CART', payload: id });
-  
-  const updateQuantity = (id, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(id);
-      return;
-    }
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
 
-  const clearCart = () => dispatch({ type: 'CLEAR_CART' });
+  const addToCart = async (product, quantity = 1) => {
+    try {
+      const cartItem = {
+        wineId: product._id,
+        wine: product.wine,
+        winery: product.winery,
+        price: product.price,
+        image: product.image,
+        quantity,
+      };
+      
+      const updatedCart = await apiAddToCart(cartItem);
+      const items = updatedCart?.items || [];
+      setCartItems(items);
+      
+      const count = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      setCartCount(count);
+      
+      const total = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+      setCartTotal(total);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      throw error;
+    }
+  };
 
-  const cartTotal = state.items.reduce((total, item) => total + (parseFloat(item.price) || 0) * item.quantity, 0);
-  const cartCount = state.items.reduce((count, item) => count + item.quantity, 0);
+  const updateQuantity = async (itemId, quantity) => {
+    try {
+      const updatedCart = await updateCartItem(itemId, quantity);
+      const items = updatedCart?.items || [];
+      setCartItems(items);
+      
+      const count = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      setCartCount(count);
+      
+      const total = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+      setCartTotal(total);
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      throw error;
+    }
+  };
+
+  const removeItem = async (itemId) => {
+    try {
+      const updatedCart = await removeFromCart(itemId);
+      const items = updatedCart?.items || [];
+      setCartItems(items);
+      
+      const count = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      setCartCount(count);
+      
+      const total = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+      setCartTotal(total);
+    } catch (error) {
+      console.error('Error removing item:', error);
+      throw error;
+    }
+  };
+
+  const clearCart = async () => {
+    try {
+      await apiClearCart();
+      setCartItems([]);
+      setCartCount(0);
+      setCartTotal(0);
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      throw error;
+    }
+  };
 
   return (
-    <CartContext.Provider value={{ cart: state.items, cartTotal, cartCount, addToCart, removeFromCart, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{
+      cartItems,
+      cartCount,
+      cartTotal,
+      loading,
+      addToCart,
+      updateQuantity,
+      removeItem,
+      clearCart,
+    }}>
       {children}
     </CartContext.Provider>
   );
@@ -81,8 +135,8 @@ export const CartProvider = ({ children }) => {
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within a CartProvider');
+  if (!context) {
+    throw new Error('useCart must be used within CartProvider');
+  }
   return context;
 };
-
-export default CartContext;
