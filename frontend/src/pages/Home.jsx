@@ -16,32 +16,33 @@ const Home = ({ activeCategory }) => {
     setCurrentPage(1);
   }, [activeCategory, fetchByCategory]);
 
+  // SAFETY: Ensure wines is always an array
+  const safeWines = Array.isArray(wines) ? wines : [];
+  
   useEffect(() => {
     setCurrentPage(1);
-  }, [wines.length]);
+  }, [safeWines.length]);
 
   // Pagination Math
-  const totalPages = Math.ceil(wines.length / winesPerPage);
+  const totalPages = Math.ceil(safeWines.length / winesPerPage);
   const indexOfLastWine = currentPage * winesPerPage;
   const indexOfFirstWine = indexOfLastWine - winesPerPage;
-  const currentWines = wines.slice(indexOfFirstWine, indexOfLastWine);
+  const currentWines = safeWines.slice(indexOfFirstWine, indexOfLastWine);
 
-  const categoryTitle = activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
+  const categoryTitle = activeCategory?.charAt(0).toUpperCase() + activeCategory?.slice(1) || 'Wines';
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // NEW: Generate the sliding window of page numbers
   const renderPageNumbers = () => {
     const pages = [];
-    const maxVisible = 5; // Show 5 numbers at a time
+    const maxVisible = 5;
     
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
     
-    // Adjust start if we are near the end of the pages
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
@@ -78,11 +79,11 @@ const Home = ({ activeCategory }) => {
         />
         
         <div className="wines-section">
-          <p className="results-count">{wines.length} wines found</p>
+          <p className="results-count">{safeWines.length} wines found</p>
           
           <WineGrid wines={currentWines} loading={loading} error={error} />
           
-          {/* PAGINATION BUTTONS */}
+          {/* Pagination Buttons */}
           {!loading && !error && totalPages > 1 && (
             <div className="pagination-container">
               <button 
@@ -93,7 +94,6 @@ const Home = ({ activeCategory }) => {
                 Previous
               </button>
               
-              {/* NEW: The Number Buttons */}
               <div className="page-numbers">
                 {renderPageNumbers()}
               </div>

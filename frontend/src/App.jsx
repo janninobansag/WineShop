@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'; // Added useLocation
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'; 
 import { NotificationProvider } from './context/NotificationContext';
+import AdminRoute from './components/AdminRoute';
+import './utils/adminSecret';
+import OrderDetail from './pages/OrderDetail';
 
 // Customer Components
 import Navbar from './components/Navbar';
@@ -29,17 +32,14 @@ import NotFound from './pages/NotFound';
 
 import './App.css';
 
-// We wrap the routing logic in a new component so we can use useLocation
 const AppLayout = () => {
   const [activeCategory, setActiveCategory] = useState('reds');
   const location = useLocation();
 
-  // Check if user is currently on an admin page
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <div className="app">
-      {/* CONDITIONAL NAVBAR */}
       {isAdminRoute ? <AdminNavbar /> : <Navbar activeCategory={activeCategory} setActiveCategory={setActiveCategory} />}
 
       <main className="main">
@@ -53,16 +53,20 @@ const AppLayout = () => {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/about" element={<About />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:orderId" element={<OrderDetail />} />
           
           {/* Admin Routes */}
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } />
           
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
 
-      {/* CONDITIONAL FOOTER */}
       {isAdminRoute ? <AdminFooter /> : <Footer />}
       
       <ToastContainer position="bottom-right" />
@@ -70,18 +74,24 @@ const AppLayout = () => {
   );
 };
 
-const App = () => {
+// Main App component - Add future flags to fix warnings
+function App() {
   return (
-    <AuthProvider> 
-      <NotificationProvider> 
-        <CartProvider>
-          <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <AuthProvider>
+        <NotificationProvider>
+          <CartProvider>
             <AppLayout />
-          </Router>
-        </CartProvider>
-      </NotificationProvider>
-    </AuthProvider>
+          </CartProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </Router>
   );
-};
+}
 
 export default App;

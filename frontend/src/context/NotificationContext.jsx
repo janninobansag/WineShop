@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
@@ -7,39 +7,166 @@ export const NotificationProvider = ({ children }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
 
-  // NEW: When user logs in or out, load THEIR specific notifications
+  // Load notifications when user logs in
   useEffect(() => {
     if (user) {
       const notifKey = `notif_${user.email}`;
       const savedNotifs = localStorage.getItem(notifKey);
-      setNotifications(savedNotifs ? JSON.parse(savedNotifs) : []);
+      if (savedNotifs) {
+        try {
+          const parsed = JSON.parse(savedNotifs);
+          const cleanNotifs = parsed.filter(n => n && typeof n === 'object').map(n => ({
+            ...n,
+            message: typeof n.message === 'string' ? n.message : 'Notification'
+          }));
+          setNotifications(cleanNotifs);
+        } catch (e) {
+          setNotifications([]);
+        }
+      } else {
+        setNotifications([]);
+      }
     } else {
-      setNotifications([]); // Clear screen if logged out
+      setNotifications([]);
     }
   }, [user?.email]);
 
-  // NEW: Every time notifications change, save them to THAT user's specific folder
+  // Save notifications when they change
   useEffect(() => {
-    if (user) {
+    if (user && notifications.length >= 0) {
       const notifKey = `notif_${user.email}`;
-      localStorage.setItem(notifKey, JSON.stringify(notifications));
+      const toStore = notifications.slice(0, 50);
+      localStorage.setItem(notifKey, JSON.stringify(toStore));
     }
   }, [notifications, user?.email]);
 
-  const addNotification = (message, type = 'info', image = null, wineName = null) => {
+  // Wrapped in useCallback to prevent the polling interval from restarting on every render
+  const addNotification = useCallback((message, type = 'info', image = null, wineName = null, orderId = null) => {
+    let messageString;
+    if (typeof message === 'string') {
+      messageString = message;
+    } else if (typeof message === 'object') {
+      messageString = message.message || JSON.stringify(message);
+    } else {
+      messageString = String(message || 'Notification');
+    }
+
     const id = Date.now();
-    setNotifications(prev => [{ id, message, type, image, wineName, read: false }, ...prev]);
-  };
+    
+    setNotifications(prev => {
+      const isDuplicate = prev.some(n => 
+        n.message === messageString && 
+        n.wineName === wineName && 
+        (id - n.id) < 3000
+      );
+      
+      if (isDuplicate) return prev;
+      
+      const newNotifications = [{ 
+        id, 
+        message: messageString, 
+        type, 
+        image, 
+        wineName, 
+        orderId, 
+        read: false,
+        timestamp: id
+      }, ...prev];
+      
+      return newNotifications.slice(0, 100);
+    });
+  }, []);
 
   const markAsRead = (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setNotifications(prev => prev.map(n => 
+      n.id === id ? { ...n, read: true } : n
+    ));
   };
 
-  const clearAll = () => setNotifications([]);
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const clearAll = () => {
+    setNotifications([]);
+    if (user) {
+      const notifKey = `notif_${user.email}`;
+      localStorage.removeItem(notifKey);
+    }
+  };
+
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Listen for Admin Updates (Same as before, but ensures it only adds to the logged-in user's state)
+  // ==========================================
+  // ✅ UPDATED POLLING EFFECT HERE
+  // ==========================================
+  useEffect(() => {
+    if (!user) return;
+
+    // Replaced with your requested function
+    const checkForOrderUpdates = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        
+        const response = await fetch('http://localhost:5000/api/orders/user', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to fetch orders:', response.status);
+          return;
+        }
+        
+        const orders = await response.json();
+        
+        const storedNotifKey = `last_order_status_${user.email}`;
+        const lastStatus = JSON.parse(localStorage.getItem(storedNotifKey) || '{}');
+        
+        orders.forEach(order => {
+          if (lastStatus[order._id] !== order.status && order.status !== 'pending') {
+            const statusMessages = {
+              'processing': `⚙️ Your order #${order.orderNumber?.slice(-8)} is now being processed.`,
+              'shipped': `🚚 Your order #${order.orderNumber?.slice(-8)} has been shipped!`,
+              'delivered': `✅ Your order #${order.orderNumber?.slice(-8)} has been delivered!`,
+              'cancelled': `❌ Your order #${order.orderNumber?.slice(-8)} has been cancelled.`
+            };
+            
+            if (statusMessages[order.status]) {
+              addNotification(
+                statusMessages[order.status],
+                'order',
+                order.items?.[0]?.image,
+                order.items?.[0]?.wine,
+                order._id
+              );
+            }
+            
+            lastStatus[order._id] = order.status;
+          }
+        });
+        
+        localStorage.setItem(storedNotifKey, JSON.stringify(lastStatus));
+      } catch (error) {
+        console.error('Error checking order updates:', error);
+      }
+    };
+    
+    // Initial check
+    checkForOrderUpdates();
+    
+    // Check every 30 seconds
+    const interval = setInterval(checkForOrderUpdates, 30000);
+    
+    return () => clearInterval(interval);
+  }, [user, addNotification]); 
+  // ==========================================
+
+  // Listen for Admin Updates (localStorage cross-tab sync)
   useEffect(() => {
     if (!user) return;
 
@@ -51,14 +178,31 @@ export const NotificationProvider = ({ children }) => {
           const alertData = JSON.parse(event.newValue);
           if (alertData.message) {
             const id = Date.now();
-            setNotifications(prev => [{
-              id,
-              message: alertData.message,
-              type: alertData.type,
-              image: alertData.image,
-              wineName: alertData.wineName,
-              read: false
-            }, ...prev]);
+            
+            let alertMessage = alertData.message;
+            if (typeof alertMessage === 'object') {
+              alertMessage = alertMessage.message || 'Update';
+            }
+            
+            setNotifications(prev => {
+              const isDuplicate = prev.some(n => 
+                n.message === alertMessage && 
+                (id - n.id) < 5000
+              );
+              
+              if (isDuplicate) return prev;
+              
+              return [{
+                id,
+                message: alertMessage,
+                type: alertData.type || 'order',
+                image: alertData.image || null,
+                wineName: alertData.wineName || null,
+                orderId: alertData.orderId || null,
+                read: false,
+                timestamp: id
+              }, ...prev];
+            });
           }
         } catch (error) {
           console.error("Error reading admin alert", error);
@@ -72,7 +216,15 @@ export const NotificationProvider = ({ children }) => {
   }, [user?.email]);
 
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification, markAsRead, clearAll, unreadCount }}>
+    <NotificationContext.Provider value={{ 
+      notifications, 
+      addNotification, 
+      markAsRead,
+      markAllAsRead,
+      clearAll, 
+      removeNotification,
+      unreadCount 
+    }}>
       {children}
     </NotificationContext.Provider>
   );

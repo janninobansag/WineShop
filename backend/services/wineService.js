@@ -1,46 +1,89 @@
-const axios = require('axios');
-const WINE_API_BASE = process.env.WINE_API_BASE_URL;
+const API_URL = 'http://localhost:5000/api/wines';
+const REVIEWS_URL = 'http://localhost:5000/api/reviews';
 
-// --- Random Generation Helpers (Prices Only) ---
-const generateSeed = (id, offset) => ((id * 9301 + 49297 + offset) % 233280) / 233280;
-
-const generateUniformPrice = (id) => {
-  const min = 1500; const max = 6000; 
-  return (Math.round(min + generateSeed(id, 100) * (max - min)) / 100).toFixed(2);
+// Get wines by category
+export const getWinesByCategory = async (category) => {
+  try {
+    const response = await fetch(`${API_URL}/${category}`);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch wines');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching wines:', error);
+    throw error;
+  }
 };
 
-// --- Main Service ---
-class WineService {
-  static async getWinesByCategory(category) {
-    try {
-      const validCategories = ['reds', 'whites', 'rose', 'sparkling'];
-      if (!validCategories.includes(category)) throw new Error('Invalid category');
-      const response = await axios.get(`${WINE_API_BASE}/${category}`);
-      
-      return response.data.map(wine => ({
-        wine: wine.wine,
-        winery: wine.winery,
-        id: wine.id,
-        image: wine.image,
-        location: wine.location,
-        price: generateUniformPrice(wine.id),
-        // Force rating to be 0 so ONLY real user reviews show up
-        rating: { average: 0, reviews: 0 } 
-      }));
-    } catch (error) {
-      throw new Error(`Failed to fetch ${category}: ${error.message}`);
-    }
+// Get wine by ID
+export const getWineById = async (id) => {
+  if (!id) {
+    throw new Error('Wine ID is required');
   }
-
-  static async getWineById(id) {
-    const categories = ['reds', 'whites', 'rose', 'sparkling'];
-    for (const cat of categories) {
-      const wines = await this.getWinesByCategory(cat);
-      const wine = wines.find(w => w.id === parseInt(id));
-      if (wine) return wine;
+  
+  try {
+    const response = await fetch(`${API_URL}/item/${id}`);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch wine');
     }
-    throw new Error('Wine not found');
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching wine by ID:', error);
+    throw error;
   }
-}
+};
 
-module.exports = WineService;
+// Get reviews for a wine from MongoDB
+export const getReviewsByWine = async (wineId) => {
+  try {
+    const response = await fetch(`${REVIEWS_URL}/wine/${wineId}`);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch reviews');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    return []; // Return empty array on error
+  }
+};
+
+// Add a review to MongoDB
+export const addReview = async (wineId, rating, comment, token) => {
+  try {
+    const response = await fetch(`${REVIEWS_URL}/${wineId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ rating, comment }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to add review');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error adding review:', error);
+    throw error;
+  }
+};
+
+export default {
+  getWinesByCategory,
+  getWineById,
+  getReviewsByWine,
+  addReview,
+};

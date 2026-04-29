@@ -1,22 +1,37 @@
- require('dotenv').config();
 const express = require('express');
+const dotenv = require('dotenv');
 const cors = require('cors');
-const wineRoutes = require('./routes/wineRoutes');
-const errorMiddleware = require('./middleware/errorMiddleware');
+const connectDB = require('./config/db');
+
+dotenv.config();
+connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 
 // Routes
-app.use('/api/wines', wineRoutes);
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/wines', require('./routes/wineRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
+app.use('/api/cart', require('./routes/cartRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes')); 
+app.use('/api/inventory', require('./routes/inventoryRoutes'));
 
-// Error Handler
-app.use(errorMiddleware);
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: `Route ${req.url} not found` });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(500).json({ message: err.message || 'Internal Server Error' });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server on port ${PORT}`);
+  console.log(`📊 Orders API: http://localhost:${PORT}/api/orders`);
 });

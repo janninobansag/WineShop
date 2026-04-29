@@ -1,120 +1,225 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPackage, FiTruck, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiPackage, FiSettings, FiTruck, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { getUserOrders, requestCancellation } from '../services/orderApi';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
+import Loader from '../components/Loader';
+import CancelOrderModal from '../components/CancelOrderModal';
 import '../App.css';
 
 const Orders = () => {
-  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const { addNotification } = useNotification();
 
   useEffect(() => {
-    if (!user) return;
-    const userOrderKey = `orders_${user.email}`;
-    const savedOrders = localStorage.getItem(userOrderKey);
-    if (savedOrders) setOrders(JSON.parse(savedOrders));
-    
-    const handleStorageChange = () => {
-      const updated = localStorage.getItem(userOrderKey);
-      if (updated) setOrders(JSON.parse(updated));
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user]);
+    if (isAuthenticated) {
+      fetchOrders();
+    }
+  }, [isAuthenticated]);
 
-  // NEW: User requests cancellation
-  const handleCancelRequest = (orderId) => {
-    const userOrderKey = `orders_${user.email}`;
-    const updatedOrders = orders.map(o => 
-      o.id === orderId ? { ...o, status: 5 } : o // 5 = Pending Cancel
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem(userOrderKey, JSON.stringify(updatedOrders));
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await getUserOrders();
+      setOrders(data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'pending': return 'status-pending';
+      case 'processing': return 'status-processing';
+      case 'shipped': return 'status-shipped';
+      case 'delivered': return 'status-delivered';
+      case 'cancelled': return 'status-cancelled';
+      case 'cancellation_requested': return 'status-pending';
+      default: return '';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'pending': return 'PENDING';
+      case 'processing': return 'PROCESSING';
+      case 'shipped': return 'SHIPPED';
+      case 'delivered': return 'DELIVERED';
+      case 'cancelled': return 'CANCELLED';
+      case 'cancellation_requested': return 'CANCELLATION REQUESTED';
+      default: return status.toUpperCase();
+    }
+  };
+
+  const canCancel = (status) => {
+    return ['pending', 'processing'].includes(status);
+  };
+
+  const handleCancelClick = (order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  const handleCancelSubmit = async (reason) => {
+    try {
+      await requestCancellation(selectedOrder._id, reason);
+      addNotification('Cancellation request submitted. Admin will review it.', 'info', null, null);
+      await fetchOrders(); // Refresh orders
+    } catch (error) {
+      addNotification(error.message || 'Failed to submit cancellation request', 'error', null, null);
+    }
+  };
+
+  const getTimelineSteps = (status) => {
+    const steps = [
+      { name: 'Order Placed', key: 'pending', icon: FiPackage },
+      { name: 'Processing', key: 'processing', icon: FiSettings },
+      { name: 'Shipped', key: 'shipped', icon: FiTruck },
+      { name: 'Delivered', key: 'delivered', icon: FiCheckCircle }
+    ];
+    
+    let currentIndex = 0;
+    switch (status) {
+      case 'pending': currentIndex = 0; break;
+      case 'processing': currentIndex = 1; break;
+      case 'shipped': currentIndex = 2; break;
+      case 'delivered': currentIndex = 3; break;
+      case 'cancelled':
+      case 'cancellation_requested':
+        currentIndex = -1; break;
+      default: currentIndex = 0;
+    }
+    
+    return steps.map((step, index) => ({
+      ...step,
+      active: currentIndex >= 0 && index <= currentIndex,
+      completed: currentIndex >= 0 && index < currentIndex
+    }));
+  };
+
+  if (loading) return <Loader />;
 
   if (orders.length === 0) {
     return (
-      <div className="error-message" style={{minHeight: '60vh', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-        <FiPackage size={50} style={{color:'#333', marginBottom:'1rem'}}/>
-        <h2>No orders yet</h2>
-        <p style={{color:'#888', marginBottom:'2rem'}}>Your order history will appear here.</p>
-        <Link to="/" className="continue-shopping-btn">Start Shopping</Link>
+      <div className="empty-cart">
+        <h2>No Orders Yet</h2>
+        <p>You haven't placed any orders yet.</p>
+        <Link to="/" className="continue-shopping-btn">
+          Start Shopping
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="orders-page">
-      <h2>My Orders ({orders.length})</h2>
-      
-      {orders.map(order => {
-        const status = order.status || 1; 
-        const isCancelled = status === 6;
-        const isPendingCancel = status === 5;
-         // User can ONLY cancel if it's still Placed (1)
-        const canCancel = status === 1;
-
+      <h2>My Orders</h2>
+      <br/>
+      {orders.map((order) => {
+        const timelineSteps = getTimelineSteps(order.status);
+        const cancellable = canCancel(order.status);
+        const isCancelled = order.status === 'cancelled';
+        const isCancellationRequested = order.status === 'cancellation_requested';
+        
         return (
-          <div key={order.id} className={`order-card ${isCancelled ? 'cancelled-order' : ''}`}>
+          <div key={order._id} className={`order-card ${isCancelled ? 'cancelled-order' : ''}`}>
             <div className="order-card-header">
               <div>
-                <p style={{color:'#888', fontSize:'0.85rem'}}>ORDER PLACED</p>
-                <p style={{color:'white', fontWeight:'bold'}}>{new Date(order.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <strong>Order #{order.orderNumber}</strong>
+                <p>{new Date(order.createdAt).toLocaleDateString()}</p>
               </div>
-              <div style={{textAlign:'right'}}>
-                <p style={{color:'#888', fontSize:'0.85rem'}}>TOTAL</p>
-                <p style={{color: isCancelled ? '#666' : '#C5A059', fontWeight:'bold', fontSize:'1.2rem', textDecoration: isCancelled ? 'line-through' : 'none'}}>${order.total.toFixed(2)}</p>
+              <div className={`status-badge ${getStatusBadgeClass(order.status)}`}>
+                {getStatusText(order.status)}
               </div>
             </div>
-
-            {/* CANCEL STATUS BADGES */}
-            {isPendingCancel && <div className="status-badge pending-badge">Cancellation Pending Admin Approval</div>}
-            {isCancelled && <div className="status-badge cancelled-badge">❌ Order Cancelled</div>}
-
+            
             <div className="order-items-list">
-              {order.items.map(item => (
-                <div key={item.id} className="order-item-mini">
-                  <img src={item.image} alt={item.wine} style={{opacity: isCancelled ? 0.5 : 1}} />
+              {order.items.map((item, idx) => (
+                <div key={idx} className="order-item-mini">
+                  <img src={item.image} alt={item.wine} />
                   <div>
-                    <p style={{color:'white', opacity: isCancelled ? 0.5 : 1}}>{item.wine}</p>
-                    <p style={{color:'#888', fontSize:'0.8rem'}}>Qty: {item.quantity}</p>
+                    <p><strong>{item.wine}</strong></p>
+                    <p>{item.winery}</p>
+                    <p>Qty: {item.quantity} × ${item.price}</p>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* TIMELINE (Greys out if cancelled) */}
-            <div className="tracker-timeline" style={{opacity: isCancelled ? 0.4 : 1}}>
-              <div className={`timeline-step ${status >= 1 && !isCancelled ? 'active' : ''}`}>
-                <div className="step-icon"><FiCheckCircle /></div>
-                <div className="step-text"><p>Order Placed</p><span>Confirmed</span></div>
+            
+            {/* Delivery Instructions */}
+            {order.shippingAddress?.deliveryInstructions && (
+              <div className="delivery-instructions">
+                <strong>📝 Delivery Instructions:</strong>
+                <p>{order.shippingAddress.deliveryInstructions}</p>
               </div>
-              <div className={`timeline-line ${status >= 2 && !isCancelled ? 'active' : ''}`}></div>
-              <div className={`timeline-step ${status >= 2 && !isCancelled ? 'active' : ''}`}>
-                <div className="step-icon"><FiPackage /></div>
-                <div className="step-text"><p>Preparing</p><span>Packing your wine</span></div>
-              </div>
-              <div className={`timeline-line ${status >= 3 && !isCancelled ? 'active' : ''}`}></div>
-              <div className={`timeline-step ${status >= 3 && !isCancelled ? 'active' : ''}`}>
-                <div className="step-icon"><FiTruck /></div>
-                <div className="step-text"><p>Shipped</p><span>On the way</span></div>
-              </div>
-              <div className={`timeline-line ${status >= 4 && !isCancelled ? 'active' : ''}`}></div>
-              <div className={`timeline-step ${status >= 4 && !isCancelled ? 'active' : ''}`}>
-                <div className="step-icon"><FiCheckCircle /></div>
-                <div className="step-text"><p>Delivered</p><span>Cash on Delivery</span></div>
-              </div>
-            </div>
-
-            {/* CANCEL BUTTON */}
-            {canCancel && (
-              <button onClick={() => handleCancelRequest(order.id)} className="cancel-order-btn">
-                Cancel Order
-              </button>
             )}
+            
+            {/* Cancellation Reason */}
+            {isCancellationRequested && order.cancellationReason && (
+              <div className="delivery-instructions" style={{ borderLeftColor: '#f1c40f' }}>
+                <strong>⏳ Cancellation Requested:</strong>
+                <p>Reason: {order.cancellationReason}</p>
+                <small>Waiting for admin approval</small>
+              </div>
+            )}
+            
+            {isCancelled && order.cancellationReason && (
+              <div className="delivery-instructions" style={{ borderLeftColor: '#e74c3c' }}>
+                <strong>❌ Order Cancelled:</strong>
+                <p>Reason: {order.cancellationReason}</p>
+              </div>
+            )}
+            
+            {/* Timeline Tracker (only if not cancelled) */}
+            {!isCancelled && !isCancellationRequested && (
+              <div className="tracker-timeline">
+                <div className={`timeline-line ${timelineSteps[1]?.active ? 'active' : ''}`}></div>
+                {timelineSteps.map((step, index) => {
+                  const IconComponent = step.icon;
+                  return (
+                    <div key={step.key} className="timeline-step">
+                      <div className={`step-icon ${step.active ? 'active' : ''}`}>
+                        <IconComponent size={18} />
+                      </div>
+                      <div className="step-text">
+                        <p>{step.name}</p>
+                        {step.completed && <span>✓</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            <div className="order-summary">
+              <p><strong>Total: ${order.total.toFixed(2)}</strong></p>
+              {cancellable && (
+                <button 
+                  className="cancel-order-btn"
+                  onClick={() => handleCancelClick(order)}
+                >
+                  <FiXCircle /> Request Cancellation
+                </button>
+              )}
+            </div>
           </div>
         );
       })}
+      
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCancelSubmit}
+        orderNumber={selectedOrder?.orderNumber}
+      />
     </div>
   );
 };

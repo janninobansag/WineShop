@@ -1,19 +1,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import CartItem from '../components/CartItem';
 import { useCart } from '../context/CartContext';
+import CartItem from '../components/CartItem';
 import '../App.css';
 
 const Cart = () => {
-  const { cart, cartTotal, cartCount, clearCart } = useCart();
+  const { cartItems, cartTotal, loading, clearCart } = useCart();
+  
+  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
+  const safeCartTotal = cartTotal || 0;
 
-  if (cart.length === 0) {
+  if (loading) {
+    return (
+      <div className="loader-container">
+        <div className="loader"></div>
+        <p>Loading your cart...</p>
+      </div>
+    );
+  }
+
+  if (safeCartItems.length === 0) {
     return (
       <div className="empty-cart">
-        <h2>🛒 Your cart is empty</h2>
-        <p>Start adding some wines!</p>
+        <h2>Your Cart is Empty</h2>
+        <p>Looks like you haven't added any wines to your cart yet.</p>
         <Link to="/" className="continue-shopping-btn">
-          Browse Wines
+          Continue Shopping
         </Link>
       </div>
     );
@@ -21,13 +33,13 @@ const Cart = () => {
 
   return (
     <div className="cart-page">
-      <h2>Shopping Cart ({cartCount} items)</h2>
-      
+      <h2>Shopping Cart</h2>
       <div className="cart-content">
         <div className="cart-items">
-          {cart.map((item) => (
-            <CartItem key={item.id} item={item} />
+          {safeCartItems.map((item) => (
+            <CartItem key={item._id || item.id || item.wine} item={item} />
           ))}
+          
           <button className="clear-cart-btn" onClick={clearCart}>
             Clear Cart
           </button>
@@ -37,15 +49,15 @@ const Cart = () => {
           <h3>Order Summary</h3>
           <div className="summary-row">
             <span>Subtotal</span>
-            <span>${cartTotal.toFixed(2)}</span>
+            <span>${safeCartTotal.toFixed(2)}</span>
           </div>
           <div className="summary-row">
             <span>Shipping</span>
-            <span>Free</span>
+            <span>Calculated at checkout</span>
           </div>
           <div className="summary-row total">
             <span>Total</span>
-            <span>${cartTotal.toFixed(2)}</span>
+            <span>${safeCartTotal.toFixed(2)}</span>
           </div>
           <Link to="/checkout" className="checkout-btn">
             Proceed to Checkout
