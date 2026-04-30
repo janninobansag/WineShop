@@ -25,7 +25,7 @@ export const clearAuthToken = () => {
 // Register user
 export const register = async (userData) => {
   try {
-    const response = await fetch(`${API_URL}/register`, {
+    const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export const register = async (userData) => {
 // Login user
 export const login = async (email, password) => {
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export const getProfile = async () => {
   }
   
   try {
-    const response = await fetch(`${API_URL}/profile`, {
+    const response = await fetch(`${API_URL}/auth/profile`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -108,6 +108,7 @@ export const getProfile = async () => {
 // Logout
 export const logout = () => {
   clearAuthToken();
+  localStorage.removeItem('wineShopUser');
 };
 
 export default {

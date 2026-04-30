@@ -15,7 +15,7 @@ const getHeaders = () => {
 
 // Create a new order
 export const createOrder = async (orderData) => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/orders`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(orderData),
@@ -32,7 +32,7 @@ export const createOrder = async (orderData) => {
 
 // Get user's orders
 export const getUserOrders = async () => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/orders`, {
     headers: getHeaders(),
   });
   
@@ -47,7 +47,7 @@ export const getUserOrders = async () => {
 
 // Get order by ID
 export const getOrderById = async (orderId) => {
-  const response = await fetch(`${API_URL}/${orderId}`, {
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
     headers: getHeaders(),
   });
   
@@ -62,7 +62,7 @@ export const getOrderById = async (orderId) => {
 
 // Request cancellation
 export const requestCancellation = async (orderId, reason) => {
-  const response = await fetch(`${API_URL}/${orderId}/cancel-request`, {
+  const response = await fetch(`${API_URL}/orders/${orderId}/cancel-request`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ reason }),
@@ -77,27 +77,9 @@ export const requestCancellation = async (orderId, reason) => {
   return data;
 };
 
-// Send notification to user about order status
-export const notifyOrderStatus = async (orderId, notificationData) => {
-  const response = await fetch(`${API_URL}/${orderId}/notify`, {
-    method: 'POST',
-    headers: getHeaders(),  // Use existing helper instead of duplicating
-    body: JSON.stringify(notificationData),
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to send notification');
-  }
-  
-  return data;
-};
-
 export default {
   createOrder,
   getUserOrders,
   getOrderById,
   requestCancellation,
-  notifyOrderStatus,  // Add this
 };
