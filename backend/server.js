@@ -11,10 +11,23 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+// Update CORS to accept your Netlify URL
+app.use(cors({ 
+  origin: ['http://localhost:3000', 'https://remarkable-meringue-3b3d59.netlify.app'], 
+  credentials: true 
+}));
 app.use(express.json());
 
-// Routes - Make sure this line exists
+// TEST ROUTE - Add this at the top
+app.get('/', (req, res) => {
+  res.json({ message: 'WineShop API is running!', status: 'online' });
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API test route works!', timestamp: new Date() });
+});
+
+// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/wines', require('./routes/wineRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
