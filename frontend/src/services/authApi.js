@@ -1,5 +1,7 @@
 // frontend/src/services/authApi.js
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://wineshop-api.onrender.com/api';
+
+console.log('🔧 Auth API_URL:', API_URL);
 
 // Store token in memory
 let authToken = null;
@@ -27,9 +29,7 @@ export const register = async (userData) => {
   try {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
     });
     
@@ -55,9 +55,7 @@ export const login = async (email, password) => {
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
     
@@ -87,9 +85,7 @@ export const getProfile = async () => {
   
   try {
     const response = await fetch(`${API_URL}/auth/profile`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     
     const data = await response.json();

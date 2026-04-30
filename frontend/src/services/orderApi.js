@@ -1,5 +1,5 @@
 // frontend/src/services/orderApi.js
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://wineshop-api.onrender.com/api';
 
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
