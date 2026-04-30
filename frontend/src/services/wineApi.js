@@ -1,5 +1,5 @@
 // frontend/src/services/wineApi.js
-const API_URL = 'http://localhost:5000/api/wines';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const REVIEWS_URL = 'http://localhost:5000/api/reviews';
 
 // Get auth token from localStorage or memory
