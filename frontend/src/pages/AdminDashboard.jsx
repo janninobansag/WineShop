@@ -63,14 +63,14 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('authToken');
       
       // Fetch users
-      const usersResponse = await fetch('http://localhost:5000/api/auth/users', {
+      const usersResponse = await fetch('https://wineshop-api.onrender.com/api/auth/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const usersData = await usersResponse.json();
       setUsers(Array.isArray(usersData) ? usersData : []);
       
       // Fetch orders
-      const ordersResponse = await fetch('http://localhost:5000/api/orders/admin/all', {
+      const ordersResponse = await fetch('https://wineshop-api.onrender.com/api/orders/admin/all', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const ordersData = await ordersResponse.json();
