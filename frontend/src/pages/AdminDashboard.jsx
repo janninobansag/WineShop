@@ -58,52 +58,53 @@ const AdminDashboard = () => {
   const totalWinePages = Math.ceil(wines.length / winesPerPage);
 
   const fetchAdminData = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('authToken');
-      
-      // Fetch users
-      const usersResponse = await fetch('https://wineshop-api.onrender.com/api/auth/users', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const usersData = await usersResponse.json();
-      setUsers(Array.isArray(usersData) ? usersData : []);
-      
-      // Fetch orders
-      const ordersResponse = await fetch('https://wineshop-api.onrender.com/api/orders/admin/all', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const ordersData = await ordersResponse.json();
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
-      
-      // Fetch ALL wines from all categories
-      const categories = ['reds', 'whites', 'rose', 'sparkling'];
-      let allWines = [];
-      
-      for (const category of categories) {
-        try {
-          const response = await fetch(`http://localhost:5000/api/wines/${category}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const data = await response.json();
-          if (data && data.data && Array.isArray(data.data)) {
-            allWines = [...allWines, ...data.data];
-          }
-        } catch (err) {
-          console.error(`Error fetching ${category}:`, err);
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('authToken');
+    
+    // Fetch users
+    const usersResponse = await fetch('https://wineshop-api.onrender.com/api/auth/users', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const usersData = await usersResponse.json();
+    setUsers(Array.isArray(usersData) ? usersData : []);
+    
+    // Fetch orders
+    const ordersResponse = await fetch('https://wineshop-api.onrender.com/api/orders/admin/all', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const ordersData = await ordersResponse.json();
+    setOrders(Array.isArray(ordersData) ? ordersData : []);
+    
+    // Fetch ALL wines from all categories - FIXED URL
+    const categories = ['reds', 'whites', 'rose', 'sparkling'];
+    let allWines = [];
+    
+    for (const category of categories) {
+      try {
+        // CHANGE THIS URL from localhost to your Render URL
+        const response = await fetch(`https://wineshop-api.onrender.com/api/wines/${category}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data && data.data && Array.isArray(data.data)) {
+          allWines = [...allWines, ...data.data];
         }
+      } catch (err) {
+        console.error(`Error fetching ${category}:`, err);
       }
-      
-      setWines(allWines);
-      console.log(`Loaded ${allWines.length} wines total`);
-      
-    } catch (error) {
-      console.error('Error fetching admin data:', error);
-      addNotification('Failed to fetch admin data', 'error', null, null);
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    setWines(allWines);
+    console.log(`Loaded ${allWines.length} wines total`);
+    
+  } catch (error) {
+    console.error('Error fetching admin data:', error);
+    addNotification('Failed to fetch admin data', 'error', null, null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('wineShopUser') || '{}');
@@ -169,7 +170,7 @@ const AdminDashboard = () => {
         updateData.password = editUserData.password;
       }
       
-      const response = await fetch(`http://localhost:5000/api/auth/users/${editingUser._id}`, {
+      const response = await fetch(`https://wineshop-api.onrender.com/api/auth/users/${editingUser._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +221,7 @@ const AdminDashboard = () => {
     if (window.confirm(`Are you sure you want to delete user "${userToDelete?.name}"? This action cannot be undone.`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://localhost:5000/api/auth/users/${userId}`, {
+        const response = await fetch(`https://wineshop-api.onrender.com/api/auth/users/${userId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -241,7 +242,7 @@ const AdminDashboard = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      const response = await fetch(`https://wineshop-api.onrender.com/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -297,7 +298,7 @@ const AdminDashboard = () => {
   const handleConfirmCancel = async (orderId) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel-approve`, {
+      const response = await fetch(`https://wineshop-api.onrender.com/api/orders/${orderId}/cancel-approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -320,7 +321,7 @@ const AdminDashboard = () => {
   const handleDeclineCancel = async (orderId) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel-reject`, {
+      const response = await fetch(`https://wineshop-api.onrender.com/api/orders/${orderId}/cancel-reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -377,7 +378,7 @@ const AdminDashboard = () => {
     if (window.confirm(`Are you sure you want to delete "${wineName}"?`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://localhost:5000/api/wines/${wineId}`, {
+        const response = await fetch(`https://wineshop-api.onrender.com/api/wines/${wineId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -406,7 +407,7 @@ const AdminDashboard = () => {
       
       let response;
       if (editingWine) {
-        response = await fetch(`http://localhost:5000/api/wines/${editingWine._id}`, {
+        response = await fetch(`https://wineshop-api.onrender.com/api/wines/${editingWine._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -415,7 +416,7 @@ const AdminDashboard = () => {
           body: JSON.stringify(wineData)
         });
       } else {
-        response = await fetch('http://localhost:5000/api/wines', {
+        response = await fetch('https://wineshop-api.onrender.com/api/wines', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
