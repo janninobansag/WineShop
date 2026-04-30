@@ -8,6 +8,8 @@ import { NotificationProvider } from './context/NotificationContext';
 import AdminRoute from './components/AdminRoute';
 import './utils/adminSecret';
 import OrderDetail from './pages/OrderDetail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Customer Components
 import Navbar from './components/Navbar';
@@ -54,6 +56,8 @@ const AppLayout = () => {
           <Route path="/about" element={<About />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:orderId" element={<OrderDetail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           
           {/* Admin Routes */}
           <Route path="/admin-login" element={<AdminLogin />} />

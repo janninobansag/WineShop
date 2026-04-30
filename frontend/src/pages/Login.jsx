@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { checkSessionAccess } from '../utils/adminSecret';
 import '../App.css';
 
 const Login = () => {
@@ -8,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -25,15 +28,17 @@ const Login = () => {
     try {
       const userData = await login(email, password);
       
-      // Check if user is admin - BLOCK admin from regular login
       if (userData.role === 'admin') {
-        setError('Admin accounts cannot login here');
-        setLoading(false);
-        return;
+        const hasAdminSecret = checkSessionAccess();
+        if (hasAdminSecret) {
+          navigate('/admin/dashboard');
+        } else {
+          setError('Admin access requires secret code. Please use admin login page.');
+          return;
+        }
+      } else {
+        navigate('/');
       }
-      
-      // Regular user goes to home page
-      navigate('/');
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {
@@ -61,16 +66,29 @@ const Login = () => {
           />
         </div>
         
-        <div className="form-group">
+        <div className="form-group password-field">
           <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            required
-            disabled={loading}
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+              disabled={loading}
+            />
+            <button 
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
+          </div>
+        </div>
+        
+        <div className="forgot-password-link">
+          <Link to="/forgot-password">Forgot Password?</Link>
         </div>
         
         <button type="submit" className="auth-btn" disabled={loading}>
@@ -81,7 +99,9 @@ const Login = () => {
           Don't have an account? <Link to="/register">Sign Up</Link>
         </div>
         
-        
+        <div className="auth-switch" style={{ marginTop: '0.5rem' }}>
+          <Link to="/admin-login">Admin Login →</Link>
+        </div>
       </form>
     </div>
   );
