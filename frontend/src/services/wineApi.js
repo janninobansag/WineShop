@@ -1,10 +1,8 @@
 // frontend/src/services/wineApi.js
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// HARDCODED for production - change back to localhost for development
+const API_URL = 'https://wineshop-api.onrender.com/api';
 
-// Get auth token from localStorage
-const getAuthToken = () => {
-  return localStorage.getItem('authToken');
-};
+console.log('🔧 Using API_URL:', API_URL);
 
 // Get wines by category
 export const getWinesByCategory = async (category) => {
@@ -64,7 +62,7 @@ export const getReviewsByWine = async (wineId) => {
 // Add a review
 export const addReview = async (wineId, rating, comment) => {
   try {
-    const token = getAuthToken();
+    const token = localStorage.getItem('authToken');
     
     if (!token) {
       throw new Error('You must be logged in to leave a review');
