@@ -4,7 +4,10 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { createOrder } from '../services/orderApi';
+import { toast } from 'react-toastify';
 import '../App.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://wineshop-api.onrender.com/api';
 
 const Checkout = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -24,11 +27,12 @@ const Checkout = () => {
     state: '',
     zipCode: '',
     phone: '',
-    deliveryInstructions: '', // NEW FIELD
+    deliveryInstructions: '',
   });
   
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [submitting, setSubmitting] = useState(false);
+  const [checkingStock, setCheckingStock] = useState(false);
 
   // If cart is empty, redirect to home
   if (safeCartItems.length === 0 && !submitting) {
@@ -54,13 +58,52 @@ const Checkout = () => {
     // Validate form
     if (!formData.fullName || !formData.email || !formData.address || !formData.city || !formData.zipCode) {
       addNotification('Please fill in all required fields', 'error', null, null);
+      toast.error("Please fill in all required fields.");
       return;
     }
     
     setSubmitting(true);
+    setCheckingStock(true);
     
     try {
-      // Prepare order data for MongoDB
+      // STEP 1: Verify stock for ALL items in cart before placing order
+      for (const item of safeCartItems) {
+        const itemId = item.wineId || item._id;
+        if (!itemId) continue;
+        
+        try {
+          const stockResponse = await fetch(`${API_URL}/inventory/${itemId}`);
+          
+          if (!stockResponse.ok) {
+            addNotification(`Could not verify stock for ${item.wine}. Please try again.`, 'error', null, null);
+            toast.error(`Could not verify stock for ${item.wine}.`);
+            return; // Halt checkout
+          }
+          
+          const stockData = await stockResponse.json();
+          
+          if (stockData.quantity === 0) {
+            addNotification(`Sorry, "${item.wine}" is now out of stock! Please remove it from your cart.`, 'error', null, null);
+            toast.error(`"${item.wine}" is out of stock!`);
+            return; // Halt checkout
+          }
+          
+          if (stockData.quantity < (item.quantity || 1)) {
+            addNotification(`Only ${stockData.quantity} bottles of "${item.wine}" available! Please update your cart.`, 'error', null, null);
+            toast.warning(`Only ${stockData.quantity} left for "${item.wine}".`);
+            return; // Halt checkout
+          }
+          
+        } catch (fetchError) {
+          console.error(`Stock check failed for ${item.wine}:`, fetchError);
+          addNotification(`Network error checking stock for ${item.wine}. Please try again.`, 'error', null, null);
+          return; // Halt checkout for safety
+        }
+      }
+      
+      setCheckingStock(false);
+
+      // STEP 2: Prepare order data for MongoDB
       const orderData = {
         shippingAddress: {
           fullName: formData.fullName,
@@ -70,7 +113,7 @@ const Checkout = () => {
           state: formData.state,
           zipCode: formData.zipCode,
           phone: formData.phone,
-          deliveryInstructions: formData.deliveryInstructions, // NEW FIELD
+          deliveryInstructions: formData.deliveryInstructions,
         },
         paymentMethod: paymentMethod,
         items: safeCartItems.map(item => ({
@@ -86,20 +129,30 @@ const Checkout = () => {
         total: safeCartTotal,
       };
       
-      // Send order to backend
+      // STEP 3: Send order to backend
       const result = await createOrder(orderData);
       
-      // Clear cart after successful order
+      // STEP 4: Clear cart after successful order
       clearCart();
       
       addNotification(`Order ${result.order.orderNumber} placed successfully! Thank you for your purchase.`, 'success', null, null);
+      toast.success(`Order ${result.order.orderNumber} placed successfully!`);
       navigate('/orders');
+      
     } catch (error) {
       console.error('Order error:', error);
       addNotification(error.message || 'Failed to place order. Please try again.', 'error', null, null);
+      toast.error(error.message || 'Failed to place order.');
     } finally {
       setSubmitting(false);
+      setCheckingStock(false);
     }
+  };
+
+  const getButtonText = () => {
+    if (checkingStock) return 'Verifying Stock...';
+    if (submitting) return 'Processing Order...';
+    return `Place Order • $${safeCartTotal.toFixed(2)}`;
   };
 
   return (
@@ -199,7 +252,7 @@ const Checkout = () => {
               />
             </div>
             
-            {/* NEW: Delivery Instructions Field */}
+            {/* Delivery Instructions Field */}
             <div className="form-group">
               <label>Delivery Instructions</label>
               <textarea
@@ -301,8 +354,20 @@ const Checkout = () => {
             onClick={handleSubmit}
             disabled={submitting || safeCartItems.length === 0}
           >
-            {submitting ? 'Processing...' : `Place Order • $${safeCartTotal.toFixed(2)}`}
+            {getButtonText()}
           </button>
+          
+          {/* Optional: Verification notice under button */}
+          {checkingStock && (
+            <p style={{ 
+              textAlign: 'center', 
+              marginTop: '10px', 
+              fontSize: '0.85rem', 
+              color: '#666' 
+            }}>
+              Checking real-time inventory...
+            </p>
+          )}
         </div>
       </div>
     </div>

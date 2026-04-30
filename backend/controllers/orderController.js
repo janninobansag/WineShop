@@ -27,6 +27,23 @@ const createOrder = async (req, res) => {
     
     const orderNumber = generateOrderNumber();
     
+    // DECREASE INVENTORY FOR EACH ITEM
+    for (const item of items) {
+      const inventory = await Inventory.findOne({ wineId: item.wineId });
+      if (inventory) {
+        const newQuantity = inventory.quantity - item.quantity;
+        if (newQuantity < 0) {
+          return res.status(400).json({ 
+            message: `Insufficient stock for ${item.wine}. Only ${inventory.quantity} left.` 
+          });
+        }
+        inventory.quantity = newQuantity;
+        inventory.updatedAt = Date.now();
+        await inventory.save();
+        console.log(`Stock updated for ${item.wine}: ${inventory.quantity} left`);
+      }
+    }
+    
     const order = await Order.create({
       orderNumber,
       userId,
