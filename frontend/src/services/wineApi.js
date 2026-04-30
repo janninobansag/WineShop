@@ -1,8 +1,7 @@
 // frontend/src/services/wineApi.js
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-const REVIEWS_URL = 'http://localhost:5000/api/reviews';
 
-// Get auth token from localStorage or memory
+// Get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
 };
@@ -10,7 +9,7 @@ const getAuthToken = () => {
 // Get wines by category
 export const getWinesByCategory = async (category) => {
   try {
-    const response = await fetch(`${API_URL}/${category}`);
+    const response = await fetch(`${API_URL}/wines/${category}`);
     const data = await response.json();
     
     if (!response.ok) {
@@ -31,7 +30,7 @@ export const getWineById = async (id) => {
   }
   
   try {
-    const response = await fetch(`${API_URL}/item/${id}`);
+    const response = await fetch(`${API_URL}/wines/item/${id}`);
     const data = await response.json();
     
     if (!response.ok) {
@@ -45,10 +44,10 @@ export const getWineById = async (id) => {
   }
 };
 
-// Get reviews for a wine from MongoDB
+// Get reviews for a wine
 export const getReviewsByWine = async (wineId) => {
   try {
-    const response = await fetch(`${REVIEWS_URL}/wine/${wineId}`);
+    const response = await fetch(`${API_URL}/reviews/wine/${wineId}`);
     const data = await response.json();
     
     if (!response.ok) {
@@ -62,7 +61,7 @@ export const getReviewsByWine = async (wineId) => {
   }
 };
 
-// Add a review to MongoDB - FIXED to use token properly
+// Add a review
 export const addReview = async (wineId, rating, comment) => {
   try {
     const token = getAuthToken();
@@ -71,7 +70,7 @@ export const addReview = async (wineId, rating, comment) => {
       throw new Error('You must be logged in to leave a review');
     }
     
-    const response = await fetch(`${REVIEWS_URL}/${wineId}`, {
+    const response = await fetch(`${API_URL}/reviews/${wineId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -96,7 +95,7 @@ export const addReview = async (wineId, rating, comment) => {
 // Search wines
 export const searchWines = async (query, category = 'reds') => {
   try {
-    const response = await fetch(`${API_URL}/${category}`);
+    const response = await fetch(`${API_URL}/wines/${category}`);
     const data = await response.json();
     
     if (!response.ok) {

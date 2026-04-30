@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api/cart';
+// frontend/src/services/cartApi.js
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
@@ -14,7 +15,7 @@ const getHeaders = () => {
 
 // Get user's cart
 export const getCart = async () => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/cart`, {
     headers: getHeaders(),
   });
   
@@ -29,7 +30,7 @@ export const getCart = async () => {
 
 // Add item to cart
 export const addToCart = async (item) => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/cart`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(item),
@@ -50,7 +51,7 @@ export const updateCartItem = async (itemId, quantity) => {
     throw new Error('Item ID is required');
   }
   
-  const response = await fetch(`${API_URL}/${itemId}`, {
+  const response = await fetch(`${API_URL}/cart/${itemId}`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify({ quantity }),
@@ -71,7 +72,7 @@ export const removeFromCart = async (itemId) => {
     throw new Error('Item ID is required');
   }
   
-  const response = await fetch(`${API_URL}/${itemId}`, {
+  const response = await fetch(`${API_URL}/cart/${itemId}`, {
     method: 'DELETE',
     headers: getHeaders(),
   });
@@ -87,7 +88,7 @@ export const removeFromCart = async (itemId) => {
 
 // Clear cart
 export const clearCart = async () => {
-  const response = await fetch(`${API_URL}/clear`, {
+  const response = await fetch(`${API_URL}/cart/clear`, {
     method: 'DELETE',
     headers: getHeaders(),
   });
