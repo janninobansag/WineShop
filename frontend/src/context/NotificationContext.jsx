@@ -113,7 +113,7 @@ export const NotificationProvider = ({ children }) => {
         const token = localStorage.getItem('authToken');
         if (!token) return;
         
-        const response = await fetch('http://localhost:5000/api/orders/user', {
+        const response = await fetch('https://wineshop-api.onrender.com/api/orders/user', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
