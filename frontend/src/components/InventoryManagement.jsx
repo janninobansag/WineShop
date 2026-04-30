@@ -29,7 +29,7 @@ const InventoryManagement = () => {
       console.log('Inventory items:', data);
       setInventory(Array.isArray(data) ? data : []);
       
-      const statsResponse = await fetch('http://localhost:5000/api/inventory/stats', {
+      const statsResponse = await fetch('https://wineshop-api.onrender.com/api/inventory', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const statsData = await statsResponse.json();
@@ -52,7 +52,7 @@ const InventoryManagement = () => {
     if (window.confirm('This will create inventory entries for all wines. Continue?')) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('http://localhost:5000/api/inventory/initialize', {
+        const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -86,7 +86,7 @@ const InventoryManagement = () => {
     console.log('Saving inventory for wineId:', wineId);
     console.log('New quantity:', editForm.quantity);
     
-    const response = await fetch(`http://localhost:5000/api/inventory/${wineId}`, {
+    const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ const InventoryManagement = () => {
     
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5000/api/inventory/${item.wineId}/adjust`, {
+      const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

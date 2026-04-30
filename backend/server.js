@@ -13,7 +13,11 @@ const app = express();
 
 // Update CORS to accept your Netlify URL
 app.use(cors({ 
-  origin: ['http://localhost:3000', 'https://wineshopily.netlify.app'], 
+  origin: ['http://localhost:3000', 
+    'https://wineshopily.netlify.app',
+    'https://deploy-preview-25--wineshopily.netlify.app',
+    'https://*.netlify.app'  // This allows all Netlify preview URLs
+  ], 
   credentials: true 
 }));
 app.use(express.json());
