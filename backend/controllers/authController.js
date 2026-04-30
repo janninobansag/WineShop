@@ -1,8 +1,9 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const Cart = require('../models/Cart');
-const Order = require('../models/Order');
+const crypto = require('crypto');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Generate JWT Token
 const generateToken = (id, email, role) => {
@@ -16,7 +17,7 @@ const generateToken = (id, email, role) => {
 // @desc    Register user
 const registerUser = async (req, res) => {
   try {
-    console.log('📝 Register request:', req.body);
+    console.log('📝 Register request:', req.body.email);
     
     const { name, email, password } = req.body;
 
@@ -35,11 +36,13 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password manually
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    
+    console.log('Password hashed successfully');
 
-    // Create user with hashed password
+    // Create user
     const user = await User.create({
       name,
       email,
@@ -48,12 +51,15 @@ const registerUser = async (req, res) => {
 
     console.log('✅ User created:', user.email);
     
+    // Generate token and send response
+    const token = generateToken(user._id, user.email, user.role);
+    
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id, user.email, user.role),
+      token: token,
     });
   } catch (error) {
     console.error('❌ Register error:', error);
@@ -64,7 +70,7 @@ const registerUser = async (req, res) => {
 // @desc    Login user
 const loginUser = async (req, res) => {
   try {
-    console.log('🔐 Login request:', req.body.email);
+    console.log('🔐 Login request for:', req.body.email);
     
     const { email, password } = req.body;
 
@@ -72,17 +78,22 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    // Check for user email
+    // Find user
     const user = await User.findOne({ email });
     
     if (!user) {
+      console.log('❌ User not found:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Check password using bcrypt
+    console.log('✅ User found:', user.email);
+    
+    // Compare password
     const isPasswordMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match result:', isPasswordMatch);
     
     if (!isPasswordMatch) {
+      console.log('❌ Password incorrect for:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
@@ -92,12 +103,15 @@ const loginUser = async (req, res) => {
 
     console.log('✅ User logged in:', user.email);
     
+    // Generate token
+    const token = generateToken(user._id, user.email, user.role);
+    
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id, user.email, user.role),
+      token: token,
     });
   } catch (error) {
     console.error('❌ Login error:', error);
@@ -108,23 +122,18 @@ const loginUser = async (req, res) => {
 // @desc    Get user profile
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
+    res.json(user);
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Update user profile (self)
+// @desc    Update user profile
 const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -159,7 +168,7 @@ const updateUserProfile = async (req, res) => {
 // @desc    Get all users (admin only)
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({});
+    const users = await User.find({}).select('-password');
     res.json(users);
   } catch (error) {
     console.error('Get users error:', error);
@@ -167,99 +176,189 @@ const getUsers = async (req, res) => {
   }
 };
 
-// ==================== ADMIN USER MANAGEMENT ====================
+// @desc    Forgot Password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log('📧 Forgot password request for:', email);
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Please provide an email address' });
+    }
+    
+    const user = await User.findOne({ email });
+    
+    // For security, always return success even if user not found
+    if (!user) {
+      return res.status(200).json({ 
+        message: 'If an account exists with this email, you will receive password reset instructions.' 
+      });
+    }
+    
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = Date.now() + 3600000; // 1 hour
+    
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetExpires;
+    await user.save();
+    
+    // Create reset link
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+    
+    // Send email via Resend
+    try {
+      const { data, error } = await resend.emails.send({
+        from: 'WineShop <onboarding@resend.dev>', // Resend's default sender for testing
+        to: [user.email],
+        subject: 'Reset Your WineShop Password',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #722F37;">WineShop Password Reset</h2>
+            <p>Hello ${user.name},</p>
+            <p>You requested to reset your password. Click the button below to create a new password:</p>
+            <a href="${resetLink}" style="display: inline-block; background-color: #722F37; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+              Reset Password
+            </a>
+            <p>Or copy this link: <a href="${resetLink}">${resetLink}</a></p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+            <hr>
+            <p style="color: #888; font-size: 12px;">WineShop - Premium Wine Selection</p>
+          </div>
+        `,
+      });
+      
+      if (error) {
+        console.error('Resend error:', error);
+      } else {
+        console.log('✅ Reset email sent to:', user.email);
+        console.log('Email ID:', data.id);
+      }
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+      // Still return success to user (don't reveal email error)
+    }
+    
+    // Also log to console for development
+    console.log('\n=========================================');
+    console.log('🔐 PASSWORD RESET LINK:');
+    console.log(resetLink);
+    console.log('=========================================\n');
+    
+    res.status(200).json({ 
+      message: 'Password reset instructions have been sent to your email.' 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
-// @desc    Update user by ID (admin only)
-// @route   PUT /api/auth/users/:userId
-// @access  Private/Admin
+// @desc    Verify Reset Token
+const verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+    
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+    
+    res.json({ valid: true, message: 'Token is valid' });
+  } catch (error) {
+    console.error('Verify token error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+    
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+    
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+    
+    console.log('✅ Password reset successful for:', user.email);
+    
+    res.json({ message: 'Password has been reset successfully. You can now login with your new password.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin user management
 const updateUserById = async (req, res) => {
   try {
     const { userId } = req.params;
     const { name, email, password, role } = req.body;
     
-    console.log('📝 Admin updating user:', userId);
-    
-    // Find user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Update fields
     if (name) user.name = name;
     if (email) user.email = email;
-    if (role && role !== user.role) {
-      user.role = role;
-      console.log(`   Role changed from ${user.role} to ${role}`);
-    }
-    
-    // Update password if provided
+    if (role) user.role = role;
     if (password && password.trim() !== '') {
-      if (password.length < 6) {
-        return res.status(400).json({ message: 'Password must be at least 6 characters' });
-      }
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
-      console.log('   Password updated');
     }
     
     await user.save();
     
-    console.log('✅ User updated successfully:', user.email);
-    
     res.json({
-      success: true,
-      message: 'User updated successfully',
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      }
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
     });
   } catch (error) {
-    console.error('❌ Update user error:', error);
+    console.error('Update user error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Delete user by ID (admin only)
-// @route   DELETE /api/auth/users/:userId
-// @access  Private/Admin
 const deleteUserById = async (req, res) => {
   try {
     const { userId } = req.params;
     
-    // Prevent deleting your own account
     if (userId === req.user.id) {
       return res.status(400).json({ message: 'You cannot delete your own account' });
     }
     
-    // Find user
-    const user = await User.findById(userId);
+    const user = await User.findByIdAndDelete(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    console.log(`🗑️ Admin deleting user: ${user.email}`);
-    
-    // Delete user
-    await User.findByIdAndDelete(userId);
-    
-    // Also delete user's cart if exists
-    await Cart.findOneAndDelete({ userId });
-    
-    // Also delete user's orders if exists
-    await Order.deleteMany({ userId });
-    
-    console.log('✅ User and associated data deleted successfully');
-    
-    res.json({ 
-      success: true, 
-      message: 'User deleted successfully' 
-    });
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error('❌ Delete user error:', error);
+    console.error('Delete user error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -272,4 +371,7 @@ module.exports = {
   getUsers,
   updateUserById,
   deleteUserById,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword
 };

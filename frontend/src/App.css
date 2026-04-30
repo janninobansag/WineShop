@@ -2740,20 +2740,35 @@ body {
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 1.5rem;
+  justify-content: space-between;
+  padding: 1rem;
   background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+  overflow-y: auto;
+}
+
+/* Hide scrollbar but keep functionality */
+.flip-card-back::-webkit-scrollbar {
+  width: 3px;
+}
+
+.flip-card-back::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.flip-card-back::-webkit-scrollbar-thumb {
+  background: #722F37;
+  border-radius: 3px;
 }
 
 .flip-card-front .wine-image {
   position: relative;
-  height: 280px;
+  height: 250px;
   background-color: #141414;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .flip-card-front .wine-image img {
@@ -2761,7 +2776,7 @@ body {
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  padding: 1rem;
+  padding: 0.5rem;
   transition: transform 0.3s ease;
 }
 
@@ -2770,39 +2785,48 @@ body {
 }
 
 .flip-card-front .wine-info {
-  padding: 1rem;
+  padding: 0.75rem;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .flip-card-front .wine-name {
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
   color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flip-card-front .winery {
   color: #888;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flip-card-front .wine-rating {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
 }
 
 .flip-card-front .wine-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
 }
 
 .flip-card-front .wine-price {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: bold;
   color: #C5A059;
 }
@@ -2814,48 +2838,57 @@ body {
   background: rgba(0,0,0,0.6);
   padding: 4px 8px;
   border-radius: 20px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #C5A059;
   display: flex;
   align-items: center;
   gap: 4px;
   opacity: 0.7;
   transition: opacity 0.3s;
+  z-index: 10;
 }
 
 .flip-card:hover .flip-hint {
   opacity: 1;
 }
 
+/* BACK CARD STYLES - FIXED */
 .flip-card-back h3 {
   color: #C5A059;
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .flip-card-back .wine-description {
   color: #ccc;
-  font-size: 0.85rem;
-  line-height: 1.6;
+  font-size: 0.8rem;
+  line-height: 1.4;
   text-align: center;
-  margin-bottom: 1rem;
-  max-height: 100px;
+  margin-bottom: 0.5rem;
+  max-height: 70px;
   overflow-y: auto;
-  padding: 0 0.5rem;
+  padding: 0 0.25rem;
+  flex-shrink: 0;
 }
 
 .flip-card-back .wine-details-list {
   width: 100%;
-  margin: 1rem 0;
-  padding: 0 1rem;
+  margin: 0.5rem 0;
+  padding: 0 0.5rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .flip-card-back .detail-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  padding: 0.3rem 0;
   border-bottom: 1px solid #2a2a2a;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .flip-card-back .detail-label {
@@ -2865,28 +2898,36 @@ body {
 
 .flip-card-back .detail-value {
   color: #C5A059;
+  text-align: right;
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flip-card-back .wine-price-back {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: #C5A059;
-  margin: 0.5rem 0;
+  margin: 0.3rem 0;
+  flex-shrink: 0;
 }
 
 .flip-card-back .add-to-cart-flip {
   background: #722F37;
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 25px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
   transition: all 0.3s ease;
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
+  flex-shrink: 0;
 }
 
 .flip-card-back .add-to-cart-flip:hover {
@@ -2898,39 +2939,59 @@ body {
 .flip-card-back .view-details-link {
   color: #888;
   text-decoration: none;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
   transition: color 0.3s;
+  flex-shrink: 0;
 }
 
 .flip-card-back .view-details-link:hover {
   color: #C5A059;
 }
 
-
 /* Responsive */
 @media (max-width: 768px) {
   .flip-card {
-    height: 400px;
+    height: 420px;
+  }
+  
+  .flip-card-front .wine-image {
+    height: 220px;
   }
   
   .flip-card-back {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .flip-card-back .wine-description {
-    font-size: 0.8rem;
-    max-height: 80px;
+    font-size: 0.7rem;
+    max-height: 60px;
   }
   
   .flip-card-back .detail-item {
-    font-size: 0.75rem;
-    padding: 0.3rem 0;
+    font-size: 0.65rem;
+    padding: 0.2rem 0;
   }
   
   .flip-card-back .add-to-cart-flip {
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+  
+  .flip-card-back h3 {
+    font-size: 0.9rem;
+  }
+  
+  .flip-card-back .wine-price-back {
+    font-size: 1rem;
+  }
+  
+  .flip-card-front .wine-name {
     font-size: 0.85rem;
+  }
+  
+  .flip-card-front .winery {
+    font-size: 0.7rem;
   }
 }
 
@@ -2958,6 +3019,12 @@ body {
 .flip-card:nth-child(4) { animation-delay: 0.2s; }
 .flip-card:nth-child(5) { animation-delay: 0.25s; }
 .flip-card:nth-child(6) { animation-delay: 0.3s; }
+.flip-card:nth-child(7) { animation-delay: 0.35s; }
+.flip-card:nth-child(8) { animation-delay: 0.4s; }
+.flip-card:nth-child(9) { animation-delay: 0.45s; }
+.flip-card:nth-child(10) { animation-delay: 0.5s; }
+.flip-card:nth-child(11) { animation-delay: 0.55s; }
+.flip-card:nth-child(12) { animation-delay: 0.6s; }
 
 /* ==================== REVIEW PAGINATION STYLES ==================== */
 .review-pagination-container {
@@ -4463,4 +4530,129 @@ body {
   .inventory-table td {
     padding: 0.5rem;
   }
+}
+
+/* Password Field Styles */
+.password-field {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+}
+
+.password-toggle:hover {
+  color: #C5A059;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+  margin-top: 8px;
+}
+
+.strength-bar {
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.strength-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.password-strength span {
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.password-strength small {
+  display: block;
+  font-size: 0.65rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: right;
+  margin-bottom: 1rem;
+}
+
+.forgot-password-link a {
+  color: #888;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.forgot-password-link a:hover {
+  color: #C5A059;
+}
+
+/* Back to Login Link */
+.back-to-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #888;
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.back-to-login:hover {
+  color: #C5A059;
+}
+
+/* Email Input with Icon */
+.email-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.email-input-wrapper .input-icon {
+  position: absolute;
+  left: 12px;
+  color: #666;
+}
+
+.email-input-wrapper input {
+  padding-left: 38px;
+}
+
+/* Success Message */
+.auth-success {
+  background: rgba(39, 174, 96, 0.2);
+  border: 1px solid #27ae60;
+  color: #27ae60;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
