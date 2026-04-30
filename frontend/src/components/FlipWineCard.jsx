@@ -1,6 +1,7 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiStar, FiShoppingCart } from 'react-icons/fi';
+// frontend/src/components/FlipWineCard.jsx
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { FiStar, FiShoppingCart, FiAlertTriangle, FiXCircle, FiCheckCircle, FiMinusCircle } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -10,7 +11,10 @@ const FlipWineCard = ({ wine }) => {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const { addNotification } = useNotification();
-  const navigate = useNavigate();
+  
+  // Stock state
+  const [stock, setStock] = useState(null);
+  const [loadingStock, setLoadingStock] = useState(true);
 
   // SAFE: Convert price to number
   let priceNumber = 0;
@@ -20,9 +24,50 @@ const FlipWineCard = ({ wine }) => {
   }
   const formattedPrice = priceNumber.toFixed(2);
 
-  // Use rating from MongoDB
-  const rating = wine.rating?.average || 0;
-  const reviewCount = wine.rating?.reviews || 0;
+  // Calculate rating from localStorage
+  const getRating = () => {
+    const reviews = JSON.parse(localStorage.getItem(`reviews_${wine.id}`) || '[]');
+    if (reviews.length === 0) return 0;
+    const avg = reviews.reduce((acc, curr) => acc + (curr.rating || 0), 0) / reviews.length;
+    return Math.min(5, avg);
+  };
+
+  const rating = getRating();
+  const reviewCount = JSON.parse(localStorage.getItem(`reviews_${wine.id}`) || '[]').length;
+
+  // Fetch stock for this wine
+  useEffect(() => {
+    const fetchStock = async () => {
+      try {
+        setLoadingStock(true);
+        const token = localStorage.getItem('authToken');
+        const API_URL = import.meta.env.VITE_API_URL || 'https://wineshop-api.onrender.com/api';
+        
+        const response = await fetch(`${API_URL}/inventory/${wine._id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setStock(data.quantity || 0);
+        } else {
+          setStock(999);
+        }
+      } catch (error) {
+        console.error('Error fetching stock:', error);
+        setStock(999);
+      } finally {
+        setLoadingStock(false);
+      }
+    };
+    
+    if (wine._id) {
+      fetchStock();
+    }
+  }, [wine._id]);
+
+  const isOutOfStock = stock === 0;
+  const isLowStock = stock > 0 && stock <= 5;
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -34,23 +79,25 @@ const FlipWineCard = ({ wine }) => {
       return;
     }
     
+    if (isOutOfStock) {
+      addNotification('Sorry, this wine is out of stock!', 'error', null, null);
+      toast.error("This wine is out of stock!");
+      return;
+    }
+    
     const wineWithNumericPrice = {
       ...wine,
       price: priceNumber
     };
     
     addToCart(wineWithNumericPrice);
-    toast.success(`${wine.wine} added to cart! 🍷`);
+    toast.success(`${wine.wine || wine.name || 'Wine'} added to cart!`);
     addNotification(
-      `${wine.wine} added to cart! 🍷`,
+      `${wine.wine || wine.name || 'Wine'} added to cart!`,
       'cart',
       wine.image,
-      wine.wine
+      wine.wine || wine.name
     );
-  };
-
-  const handleCardClick = () => {
-    navigate(`/wine/${wine._id}`);
   };
 
   const getWineDescription = () => {
@@ -73,26 +120,65 @@ const FlipWineCard = ({ wine }) => {
     return pairings[wine.type] || 'Red meat, cheese, pasta';
   };
 
-  const wineId = wine._id || wine.id;
+  // Stock status with icon components
+  const getStockStatusText = () => {
+    if (isOutOfStock) return { text: 'Out of Stock', color: '#e74c3c', icon: <FiXCircle /> };
+    if (isLowStock) return { text: `Only ${stock} left!`, color: '#f1c40f', icon: <FiAlertTriangle /> };
+    return { text: 'In Stock', color: '#27ae60', icon: <FiCheckCircle /> };
+  };
+
+  const stockStatus = getStockStatusText();
+
+  if (loadingStock) {
+    return (
+      <div className="flip-card">
+        <div className="flip-card-inner">
+          <div className="flip-card-front">
+            <div className="wine-image">
+              <img 
+                src={wine.image || 'https://via.placeholder.com/200x300?text=Wine'} 
+                alt={wine.wine || wine.name || 'Wine'}
+              />
+            </div>
+            <div className="wine-info">
+              <h3 className="wine-name">{wine.wine || wine.name || 'Premium Wine'}</h3>
+              <p className="winery">{wine.winery || 'Premium Winery'}</p>
+              <div className="stock-loader">Checking stock...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flip-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+    <div className="flip-card">
       <div className="flip-card-inner">
         {/* Front of card */}
         <div className="flip-card-front">
           <div className="wine-image">
             <img 
               src={wine.image || 'https://via.placeholder.com/200x300?text=Wine'} 
-              alt={wine.wine}
+              alt={wine.wine || wine.name || 'Wine'}
               loading="lazy"
               onError={(e) => {
                 e.target.src = 'https://via.placeholder.com/200x300?text=Wine+Image';
               }}
             />
+            {isOutOfStock && (
+              <div className="stock-badge out-of-stock-badge">
+                <FiMinusCircle /> Out of Stock
+              </div>
+            )}
+            {isLowStock && !isOutOfStock && (
+              <div className="stock-badge low-stock-badge">
+                <FiAlertTriangle /> Only {stock} left!
+              </div>
+            )}
           </div>
           <div className="wine-info">
-            <h3 className="wine-name">{wine.wine}</h3>
-            <p className="winery">{wine.winery}</p>
+            <h3 className="wine-name">{wine.wine || wine.name || 'Premium Wine'}</h3>
+            <p className="winery">{wine.winery || 'Premium Winery'}</p>
             <div className="wine-rating">
               {[...Array(5)].map((_, i) => (
                 <FiStar key={i} className="star-icon" style={{ fill: i < Math.floor(rating) ? '#C5A059' : 'none' }} />
@@ -104,12 +190,24 @@ const FlipWineCard = ({ wine }) => {
               <span className="wine-price">${formattedPrice}</span>
               <span className="wine-location">{wine.location || 'Imported'}</span>
             </div>
+            
+            {/* Stock Warnings */}
+            {stock !== null && stock <= 5 && stock > 0 && (
+              <div className="low-stock-warning">
+                <FiAlertTriangle /> Only {stock} left in stock!
+              </div>
+            )}
+            {stock === 0 && (
+              <div className="out-of-stock-warning">
+                <FiXCircle /> Out of Stock
+              </div>
+            )}
           </div>
         </div>
 
         {/* Back of card */}
         <div className="flip-card-back">
-          <h3>{wine.wine}</h3>
+          <h3>{wine.wine || wine.name || 'Premium Wine'}</h3>
           
           <div className="wine-description">
             {getWineDescription()}
@@ -132,6 +230,12 @@ const FlipWineCard = ({ wine }) => {
               <span className="detail-label">Pairing</span>
               <span className="detail-value">{getFoodPairing()}</span>
             </div>
+            <div className="detail-item">
+              <span className="detail-label">Stock</span>
+              <span className="detail-value stock-status-value" style={{ color: stockStatus.color }}>
+                {stockStatus.icon} {stockStatus.text}
+              </span>
+            </div>
           </div>
 
           <div className="wine-price-back">
@@ -141,20 +245,23 @@ const FlipWineCard = ({ wine }) => {
           <button 
             className="add-to-cart-flip"
             onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            style={{ 
+              opacity: isOutOfStock ? 0.5 : 1, 
+              cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+              background: isOutOfStock ? '#555' : '#722F37'
+            }}
           >
-            <FiShoppingCart /> Add to Cart
+            <FiShoppingCart /> {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
           </button>
 
-          <button 
+          <Link 
+            to={`/wine/${wine._id}`} 
             className="view-details-link"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/wine/${wineId}`);
-            }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            onClick={(e) => e.stopPropagation()}
           >
             View Full Details →
-          </button>
+          </Link>
         </div>
       </div>
     </div>
