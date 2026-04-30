@@ -13,7 +13,7 @@ const app = express();
 
 // Update CORS to accept your Netlify URL
 app.use(cors({ 
-  origin: ['http://localhost:3000', 'https://remarkable-meringue-3b3d59.netlify.app'], 
+  origin: ['http://localhost:3000', 'https://wineshopily.netlify.app'], 
   credentials: true 
 }));
 app.use(express.json());
