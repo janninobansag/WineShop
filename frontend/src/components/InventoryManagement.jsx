@@ -86,7 +86,7 @@ const InventoryManagement = () => {
     console.log('Saving inventory for wineId:', wineId);
     console.log('New quantity:', editForm.quantity);
     
-    const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
+    const response = await fetch(`${API_URL}/inventory/${wineId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -100,11 +100,9 @@ const InventoryManagement = () => {
     });
     
     if (response.ok) {
-      const updatedItem = await response.json();
-      console.log('Update successful! New quantity:', updatedItem.quantity);
       addNotification('Inventory updated successfully', 'success', null, null);
       setEditingId(null);
-      fetchInventory(); // Refresh the list
+      fetchInventory();
     } else {
       const error = await response.json();
       addNotification(error.message || 'Failed to update inventory', 'error', null, null);
