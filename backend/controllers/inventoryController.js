@@ -26,16 +26,30 @@ const getLowStockItems = async (req, res) => {
 };
 
 // Get inventory by wine ID
+// Get inventory by wine ID (works for both public and authenticated)
 const getInventoryByWineId = async (req, res) => {
   try {
     const { wineId } = req.params;
+    console.log(`Fetching inventory for wineId: ${wineId}`);
+    
     const inventory = await Inventory.findOne({ wineId });
+    
+    // Always return a response, even if not found
     if (!inventory) {
-      return res.status(404).json({ message: 'Inventory not found' });
+      return res.json({ 
+        quantity: 0, 
+        inStock: false,
+        message: 'No inventory record found'
+      });
     }
-    res.json(inventory);
+    
+    res.json({
+      quantity: inventory.quantity,
+      inStock: inventory.quantity > 0,
+      lowStock: inventory.quantity <= (inventory.lowStockThreshold || 10)
+    });
   } catch (error) {
-    console.error('Get inventory by wineId error:', error);
+    console.error('Get inventory error:', error);
     res.status(500).json({ message: error.message });
   }
 };
