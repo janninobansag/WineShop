@@ -2,12 +2,30 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiGrid, FiLogOut, FiArrowLeft } from 'react-icons/fi';
 import { GiWineBottle } from 'react-icons/gi';
+import { useAuth } from '../context/AuthContext';
 import '../App.css';
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth(); // Get logout function from context
   const isDashboard = location.pathname === '/admin';
+
+  // FIXED: Complete logout function
+  const handleLogout = () => {
+    // Clear all authentication and session data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('wineShopUser');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminAccess');
+    sessionStorage.removeItem('adminAccess');
+    
+    // Call the auth context logout
+    logout();
+    
+    // Navigate to admin login page
+    navigate('/admin-login');
+  };
 
   return (
     <nav className="admin-navbar">
@@ -30,7 +48,7 @@ const AdminNavbar = () => {
         </button>
 
         {isDashboard && (
-          <button onClick={() => { localStorage.removeItem('isAdmin'); navigate('/admin-login'); }} className="admin-nav-btn logout">
+          <button onClick={handleLogout} className="admin-nav-btn logout">
             <FiLogOut /> Logout
           </button>
         )}

@@ -58,53 +58,52 @@ const AdminDashboard = () => {
   const totalWinePages = Math.ceil(wines.length / winesPerPage);
 
   const fetchAdminData = async () => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem('authToken');
-    
-    // Fetch users
-    const usersResponse = await fetch('https://wineshop-api.onrender.com/api/auth/users', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const usersData = await usersResponse.json();
-    setUsers(Array.isArray(usersData) ? usersData : []);
-    
-    // Fetch orders
-    const ordersResponse = await fetch('https://wineshop-api.onrender.com/api/orders/admin/all', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const ordersData = await ordersResponse.json();
-    setOrders(Array.isArray(ordersData) ? ordersData : []);
-    
-    // Fetch ALL wines from all categories - FIXED URL
-    const categories = ['reds', 'whites', 'rose', 'sparkling'];
-    let allWines = [];
-    
-    for (const category of categories) {
-      try {
-        // CHANGE THIS URL from localhost to your Render URL
-        const response = await fetch(`https://wineshop-api.onrender.com/api/wines/${category}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        if (data && data.data && Array.isArray(data.data)) {
-          allWines = [...allWines, ...data.data];
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      
+      // Fetch users
+      const usersResponse = await fetch('https://wineshop-api.onrender.com/api/auth/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const usersData = await usersResponse.json();
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      
+      // Fetch orders
+      const ordersResponse = await fetch('https://wineshop-api.onrender.com/api/orders/admin/all', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const ordersData = await ordersResponse.json();
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      
+      // Fetch ALL wines from all categories
+      const categories = ['reds', 'whites', 'rose', 'sparkling'];
+      let allWines = [];
+      
+      for (const category of categories) {
+        try {
+          const response = await fetch(`https://wineshop-api.onrender.com/api/wines/${category}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          if (data && data.data && Array.isArray(data.data)) {
+            allWines = [...allWines, ...data.data];
+          }
+        } catch (err) {
+          console.error(`Error fetching ${category}:`, err);
         }
-      } catch (err) {
-        console.error(`Error fetching ${category}:`, err);
       }
+      
+      setWines(allWines);
+      console.log(`Loaded ${allWines.length} wines total`);
+      
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+      addNotification('Failed to fetch admin data', 'error', null, null);
+    } finally {
+      setLoading(false);
     }
-    
-    setWines(allWines);
-    console.log(`Loaded ${allWines.length} wines total`);
-    
-  } catch (error) {
-    console.error('Error fetching admin data:', error);
-    addNotification('Failed to fetch admin data', 'error', null, null);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('wineShopUser') || '{}');
@@ -132,9 +131,19 @@ const AdminDashboard = () => {
     setCurrentWinePage(1);
   }, [wines.length]);
 
+  // FIXED: Admin Logout Function
   const handleLogout = () => {
+    // Clear all authentication and session data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('wineShopUser');
+    localStorage.removeItem('adminAccess'); 
+    sessionStorage.removeItem('adminAccess');
+    
+    // Call the auth context logout
     logout();
-    navigate('/');
+    
+    // Force navigate to admin login page instead of user home page
+    navigate('/admin-login');
   };
 
   // User Management
