@@ -17,36 +17,38 @@ const InventoryManagement = () => {
     fetchInventory();
   }, []);
 
-  const fetchInventory = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('authToken');
-      
-      const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      console.log('Inventory items:', data);
-      setInventory(Array.isArray(data) ? data : []);
-      
-      const statsResponse = await fetch('https://wineshop-api.onrender.com/api/inventory', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const statsData = await statsResponse.json();
-      console.log('Stats data:', statsData);
-      
-      setStats({
-        totalItems: statsData.totalItems || 0,
-        lowStock: statsData.lowStock || 0,
-        totalValue: statsData.totalValue || 0
-      });
-    } catch (error) {
-      console.error('Error fetching inventory:', error);
-      addNotification('Failed to load inventory', 'error', null, null);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchInventory = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('authToken');
+    
+    // Fetch inventory items
+    const response = await fetch(`${API_URL}/inventory`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    console.log('Inventory items:', data);
+    setInventory(Array.isArray(data) ? data : []);
+    
+    // Fetch stats - NOTE: This should return an object, not array
+    const statsResponse = await fetch(`${API_URL}/inventory/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const statsData = await statsResponse.json();
+    console.log('Stats data:', statsData);
+    
+    setStats({
+      totalItems: statsData.totalItems || 0,
+      lowStock: statsData.lowStock || 0,
+      totalValue: statsData.totalValue || 0
+    });
+  } catch (error) {
+    console.error('Error fetching inventory:', error);
+    addNotification('Failed to load inventory', 'error', null, null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleInitialize = async () => {
     if (window.confirm('This will create inventory entries for all wines. Continue?')) {

@@ -7,6 +7,7 @@ const {
   getAllInventory,
   getLowStockItems,
   getInventoryByWineId,
+  getInventoryStats,
   updateInventory,
   adjustStock,
   initializeInventory
@@ -29,6 +30,7 @@ router.use(protect, admin);
 
 // Define routes - make sure all handlers exist
 router.get('/', getAllInventory);
+router.get('/stats', protect, admin, getInventoryStats)
 router.get('/stats', getInventoryStats);
 router.get('/low-stock', getLowStockItems);
 router.get('/:wineId', getInventoryByWineId);
