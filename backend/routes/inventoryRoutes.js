@@ -12,21 +12,18 @@ const {
   getInventoryStats
 } = require('../controllers/inventoryController');
 
-// ========== PUBLIC ROUTE - NO AUTHENTICATION ==========
-// This MUST be before any protect middleware
+// ========== PUBLIC ROUTES (no auth) ==========
 router.get('/public/:wineId', getInventoryByWineId);
 
-// ========== PROTECTED ROUTES ==========
+// ========== SPECIFIC ROUTES FIRST (must come BEFORE /:wineId) ==========
+router.get('/stats', protect, admin, getInventoryStats);
+router.get('/low-stock', protect, admin, getLowStockItems);
+router.post('/initialize', protect, admin, initializeInventory);
+router.get('/', protect, admin, getAllInventory);
+
+// ========== PARAMETER ROUTES LAST ==========
 router.get('/:wineId', protect, getInventoryByWineId);
-
-// ========== ADMIN ONLY ROUTES ==========
-router.use(protect, admin);
-
-router.get('/', getAllInventory);
-router.get('/stats', getInventoryStats);
-router.get('/low-stock', getLowStockItems);
-router.put('/:wineId', updateInventory);
-router.patch('/:wineId/adjust', adjustStock);
-router.post('/initialize', initializeInventory);
+router.put('/:wineId', protect, admin, updateInventory);
+router.patch('/:wineId/adjust', protect, admin, adjustStock);
 
 module.exports = router;

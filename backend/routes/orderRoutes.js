@@ -23,6 +23,7 @@ router.get('/', getUserOrders);
 router.get('/user', getUserOrdersForNotifications);  // Add this route - for notification polling
 router.post('/:orderId/cancel-request', requestCancellation);
 router.get('/:orderId', getOrderById);
+router.get('/:orderId', protect, getOrderById);
 
 // Admin routes
 router.put('/:orderId/status', admin, updateOrderStatus);

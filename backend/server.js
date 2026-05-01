@@ -11,18 +11,20 @@ connectDB();
 
 const app = express();
 
-// Update CORS to accept your Netlify URL
+// Updated CORS to accept all frontend environments
 app.use(cors({ 
-  origin: ['http://localhost:3000', 
-    'https://wineshopily.netlify.app',
-    'https://deploy-preview-25--wineshopily.netlify.app',
-    'https://*.netlify.app'  // This allows all Netlify preview URLs
+  origin: [
+    'http://localhost:3000',           // Standard React/Next.js port
+    'http://localhost:5173',           // Vite default port
+    'https://wineshopily.netlify.app', // Live production frontend
+    'https://deploy-preview-25--wineshopily.netlify.app', // Specific preview
+    'https://*.netlify.app'            // All Netlify preview URLs
   ], 
   credentials: true 
 }));
 app.use(express.json());
 
-// TEST ROUTE - Add this at the top
+// TEST ROUTE
 app.get('/', (req, res) => {
   res.json({ message: 'WineShop API is running!', status: 'online' });
 });
@@ -38,7 +40,7 @@ app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/inventory', require('./routes/inventoryRoutes'));
-
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // 404 handler
 app.use((req, res) => {

@@ -26,67 +26,44 @@ const getLowStockItems = async (req, res) => {
 };
 
 // Get inventory by wine ID
-// Get inventory by wine ID (works for both public and authenticated)
 const getInventoryByWineId = async (req, res) => {
   try {
     const { wineId } = req.params;
-    console.log(`Fetching inventory for wineId: ${wineId}`);
-    
     const inventory = await Inventory.findOne({ wineId });
-    
-    // Always return a response, even if not found
     if (!inventory) {
-      return res.json({ 
-        quantity: 0, 
-        inStock: false,
-        message: 'No inventory record found'
-      });
+      return res.json({ quantity: 0, inStock: false });
     }
-    
-    res.json({
-      quantity: inventory.quantity,
-      inStock: inventory.quantity > 0,
-      lowStock: inventory.quantity <= (inventory.lowStockThreshold || 10)
-    });
+    res.json(inventory);
   } catch (error) {
-    console.error('Get inventory error:', error);
+    console.error('Get inventory by wineId error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Create or update inventory
+// Update inventory
 const updateInventory = async (req, res) => {
   try {
     const { wineId } = req.params;
     const { quantity, lowStockThreshold, supplier } = req.body;
     
-    console.log('Updating inventory for wineId:', wineId);
-    console.log('New quantity:', quantity);
-    
-    // Find inventory by wineId (not by _id)
-    let inventory = await Inventory.findOne({ wineId: wineId });
+    let inventory = await Inventory.findOne({ wineId });
     
     if (inventory) {
-      // Update existing inventory
       if (quantity !== undefined) inventory.quantity = parseInt(quantity);
       if (lowStockThreshold !== undefined) inventory.lowStockThreshold = parseInt(lowStockThreshold);
       if (supplier !== undefined) inventory.supplier = supplier;
       inventory.updatedAt = Date.now();
-      
       await inventory.save();
-      console.log('Inventory updated successfully. New quantity:', inventory.quantity);
     } else {
-      // Create new inventory if doesn't exist
       const wine = await Wine.findById(wineId);
       inventory = await Inventory.create({
-        wineId: wineId,
+        wineId,
         wineName: wine.wine,
         quantity: parseInt(quantity) || 0,
         lowStockThreshold: lowStockThreshold || 10,
         supplier: supplier || '',
         price: wine.price || 20
       });
-      console.log('New inventory created');
     }
     
     res.json(inventory);
@@ -156,6 +133,8 @@ const initializeInventory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get inventory stats
 const getInventoryStats = async (req, res) => {
   try {
     const inventory = await Inventory.find();

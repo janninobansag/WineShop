@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const Inventory = require('../models/Inventory'); // <--- THIS WAS MISSING!
 
 // Generate unique order number
 const generateOrderNumber = () => {
@@ -162,7 +163,7 @@ const requestCancellation = async (req, res) => {
   }
 };
 
-// Approve cancellation (Admin)
+// Approve cancellation (Admin) - UPDATED TO RESTOCK ITEMS
 const approveCancellation = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -177,6 +178,19 @@ const approveCancellation = async (req, res) => {
       return res.status(400).json({ message: 'No pending cancellation request for this order' });
     }
     
+    // BONUS: Put the items back into inventory
+    if (order.items && order.items.length > 0) {
+      for (const item of order.items) {
+        const inventory = await Inventory.findOne({ wineId: item.wineId });
+        if (inventory) {
+          inventory.quantity += item.quantity;
+          inventory.updatedAt = Date.now();
+          await inventory.save();
+          console.log(`Restocked ${item.quantity} of ${item.wine}`);
+        }
+      }
+    }
+    
     order.status = 'cancelled';
     order.cancelledAt = Date.now();
     order.updatedAt = Date.now();
@@ -185,7 +199,7 @@ const approveCancellation = async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: 'Order cancelled successfully',
+      message: 'Order cancelled and items restocked',
       order 
     });
   } catch (error) {
@@ -273,7 +287,7 @@ const sendOrderNotification = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
     
-    console.log(`📧 Notification sent to user ${order.userEmail}: ${message}`);
+    console.log(`Email: Notification sent to user ${order.userEmail}: ${message}`);
     
     res.json({
       success: true,
@@ -297,7 +311,7 @@ const sendOrderNotification = async (req, res) => {
 module.exports = {
   createOrder,
   getUserOrders,
-  getUserOrdersForNotifications, // Added here
+  getUserOrdersForNotifications,
   getOrderById,
   requestCancellation,
   approveCancellation,
