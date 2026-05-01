@@ -1,7 +1,5 @@
 // frontend/src/services/authApi.js
-const API_URL = 'https://wineshop-api.onrender.com/api';
-
-console.log('🔧 Auth API_URL:', API_URL);
+import { API_URL } from '../config';
 
 // Store token in memory
 let authToken = null;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiPackage, FiAlertCircle, FiPlus, FiMinus, FiEdit, FiSave, FiX, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
+import { FiPackage, FiAlertCircle, FiPlus, FiMinus, FiEdit, FiSave, FiX, FiRefreshCw, FiTrendingUp, FiXCircle, FiAlertTriangle, FiMinusCircle, FiCheckCircle } from 'react-icons/fi';
 import { useNotification } from '../context/NotificationContext';
-const API_URL = 'https://wineshop-api.onrender.com/api';
+import { API_URL } from '../config';
 
 const InventoryManagement = () => {
   const [inventory, setInventory] = useState([]);
@@ -18,55 +18,58 @@ const InventoryManagement = () => {
     fetchInventory();
   }, []);
 
-const fetchInventory = async () => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem('authToken');
-    
-    // Fetch inventory items
-    const response = await fetch(`${API_URL}/inventory`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await response.json();
-    console.log('Inventory items:', data);
-    setInventory(Array.isArray(data) ? data : []);
-    
-    // Fetch stats - NOTE: This should return an object, not array
-    const statsResponse = await fetch(`${API_URL}/inventory/stats`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const statsData = await statsResponse.json();
-    console.log('Stats data:', statsData);
-    
-    setStats({
-      totalItems: statsData.totalItems || 0,
-      lowStock: statsData.lowStock || 0,
-      totalValue: statsData.totalValue || 0
-    });
-  } catch (error) {
-    console.error('Error fetching inventory:', error);
-    addNotification('Failed to load inventory', 'error', null, null);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleInitialize = async () => {
-    if (window.confirm('This will create inventory entries for all wines. Continue?')) {
-      try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        addNotification(`Inventory initialized: ${data.created} created, ${data.updated} updated`, 'success', null, null);
-        fetchInventory();
-      } catch (error) {
-        addNotification('Failed to initialize inventory', 'error', null, null);
-      }
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      
+      // Fetch inventory items
+      const response = await fetch(`${API_URL}/inventory`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setInventory(Array.isArray(data) ? data : []);
+      
+      // Fetch stats
+      const statsResponse = await fetch(`${API_URL}/inventory/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const statsData = await statsResponse.json();
+      
+      setStats({
+        totalItems: statsData.totalItems || 0,
+        lowStock: statsData.lowStock || 0,
+        totalValue: statsData.totalValue || 0
+      });
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+      addNotification('Failed to load inventory', 'error', null, null);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleInitialize = async () => {
+  if (window.confirm('This will create inventory entries for all wines. Continue?')) {
+    try {
+      const token = localStorage.getItem('authToken');
+      // FIXED: Use /initialize endpoint
+      const response = await fetch(`${API_URL}/inventory/initialize`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+      const data = await response.json();
+      addNotification(`Inventory initialized: ${data.created} created`, 'success', null, null);
+      fetchInventory();
+    } catch (error) {
+      console.error('Initialize error:', error);
+      addNotification('Failed to initialize inventory', 'error', null, null);
+    }
+  }
+};
 
   const handleEdit = (item) => {
     setEditingId(item._id);
@@ -77,45 +80,37 @@ const fetchInventory = async () => {
     });
   };
 
-  // ✅ UPDATED handleSaveEdit FUNCTION
   const handleSaveEdit = async (item) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    
-    // IMPORTANT: Use wineId (not _id) for the API call
-    // The backend expects the wineId parameter, not the inventory _id
-    const wineId = item.wineId;
-    
-    console.log('Saving inventory for wineId:', wineId);
-    console.log('New quantity:', editForm.quantity);
-    
-    const response = await fetch(`${API_URL}/inventory/${wineId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        quantity: parseInt(editForm.quantity),
-        lowStockThreshold: parseInt(editForm.lowStockThreshold),
-        supplier: editForm.supplier
-      })
-    });
-    
-    if (response.ok) {
-      addNotification('Inventory updated successfully', 'success', null, null);
-      setEditingId(null);
-      fetchInventory();
-    } else {
-      const error = await response.json();
-      addNotification(error.message || 'Failed to update inventory', 'error', null, null);
+    try {
+      const token = localStorage.getItem('authToken');
+      const wineId = item.wineId;
+      
+      const response = await fetch(`${API_URL}/inventory/${wineId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          quantity: parseInt(editForm.quantity),
+          lowStockThreshold: parseInt(editForm.lowStockThreshold),
+          supplier: editForm.supplier
+        })
+      });
+      
+      if (response.ok) {
+        addNotification('Inventory updated successfully', 'success', null, null);
+        setEditingId(null);
+        fetchInventory();
+      } else {
+        const error = await response.json();
+        addNotification(error.message || 'Failed to update inventory', 'error', null, null);
+      }
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      addNotification('Error updating inventory', 'error', null, null);
     }
-  } catch (error) {
-    console.error('Error updating inventory:', error);
-    addNotification('Error updating inventory', 'error', null, null);
-  }
-};
-
+  };
 
   const handleAdjustStock = async (item) => {
     if (adjustAmount === 0) {
@@ -125,7 +120,9 @@ const fetchInventory = async () => {
     
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('https://wineshop-api.onrender.com/api/inventory', {
+      
+      // FIXED: Use the correct /adjust endpoint with the specific wineId
+      const response = await fetch(`${API_URL}/inventory/${item.wineId}/adjust`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -141,18 +138,20 @@ const fetchInventory = async () => {
         setAdjustReason('');
         fetchInventory();
       } else {
-        addNotification('Failed to adjust stock', 'error', null, null);
+        const errorData = await response.json();
+        addNotification(errorData.message || 'Failed to adjust stock', 'error', null, null);
       }
     } catch (error) {
       addNotification('Error adjusting stock', 'error', null, null);
     }
   };
 
+  // UPDATED: Replaced emojis with React Icons
   const getStockStatus = (quantity, threshold) => {
-    if (quantity === 0) return { text: 'Out of Stock', color: '#e74c3c', icon: '🔴' };
-    if (quantity <= threshold) return { text: 'Low Stock', color: '#f1c40f', icon: '⚠️' };
-    if (quantity <= threshold * 2) return { text: 'Running Low', color: '#e67e22', icon: '🟡' };
-    return { text: 'In Stock', color: '#27ae60', icon: '✅' };
+    if (quantity === 0) return { text: 'Out of Stock', color: '#e74c3c', icon: <FiXCircle size={14} /> };
+    if (quantity <= threshold) return { text: 'Low Stock', color: '#f1c40f', icon: <FiAlertTriangle size={14} /> };
+    if (quantity <= threshold * 2) return { text: 'Running Low', color: '#e67e22', icon: <FiMinusCircle size={14} /> };
+    return { text: 'In Stock', color: '#27ae60', icon: <FiCheckCircle size={14} /> };
   };
 
   if (loading) {
@@ -237,7 +236,7 @@ const fetchInventory = async () => {
                     )}
                   </td>
                   <td>
-                    <span className="stock-status" style={{ color: status.color }}>
+                    <span className="stock-status" style={{ color: status.color, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {status.icon} {status.text}
                     </span>
                   </td>
@@ -271,7 +270,6 @@ const fetchInventory = async () => {
                   <td className="actions">
                     {isEditing ? (
                       <>
-                        {/* ✅ UPDATED BUTTON TO PASS ENTIRE ITEM */}
                         <button onClick={() => handleSaveEdit(item)} className="save-btn" title="Save">
                           <FiSave />
                         </button>

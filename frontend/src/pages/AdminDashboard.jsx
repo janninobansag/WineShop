@@ -249,60 +249,51 @@ const AdminDashboard = () => {
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`https://wineshop-api.onrender.com/api/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+    
+    if (response.ok) {
+      const order = orders.find(o => o._id === orderId);
       
-      if (response.ok) {
-        const order = orders.find(o => o._id === orderId);
-        
-        const statusMessages = {
-          'processing': `⚙️ Your order #${order.orderNumber?.slice(-8)} is now being processed.`,
-          'shipped': `🚚 Your order #${order.orderNumber?.slice(-8)} has been shipped!`,
-          'delivered': `✅ Your order #${order.orderNumber?.slice(-8)} has been delivered!`
-        };
-        
-        if (statusMessages[newStatus]) {
-          const notifKey = `notif_${order.userEmail}`;
-          const existingNotifs = JSON.parse(localStorage.getItem(notifKey) || '[]');
-          
-          const newNotification = {
-            id: Date.now(),
+      const statusMessages = {
+        'processing': `⚙️ Your order #${order.orderNumber?.slice(-8)} is now being processed.`,
+        'shipped': `🚚 Your order #${order.orderNumber?.slice(-8)} has been shipped!`,
+        'delivered': `✅ Your order #${order.orderNumber?.slice(-8)} has been delivered!`
+      };
+      
+      if (statusMessages[newStatus]) {
+        // Add notification to MongoDB with orderId
+        await fetch(`${API_URL}/notifications`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
             message: statusMessages[newStatus],
             type: 'order',
             image: order.items?.[0]?.image || null,
             wineName: order.items?.[0]?.wine || "Your Order",
-            orderId: orderId,
-            read: false,
-            timestamp: Date.now()
-          };
-          
-          existingNotifs.unshift(newNotification);
-          localStorage.setItem(notifKey, JSON.stringify(existingNotifs.slice(0, 50)));
-          
-          window.dispatchEvent(new StorageEvent('storage', {
-            key: notifKey,
-            newValue: JSON.stringify(existingNotifs.slice(0, 50))
-          }));
-        }
-        
-        addNotification(`Order status updated to ${newStatus}`, 'success', null, null);
-        fetchAdminData();
-      } else {
-        addNotification('Failed to update order status', 'error', null, null);
+            orderId: orderId  // ← IMPORTANT: Include orderId
+          })
+        });
       }
-    } catch (error) {
-      console.error('Error updating order:', error);
-      addNotification('Error updating order', 'error', null, null);
+      
+      addNotification(`Order status updated to ${newStatus}`, 'success', null, null);
+      fetchAdminData();
     }
-  };
+  } catch (error) {
+    console.error('Error updating order:', error);
+  }
+};
 
   const handleConfirmCancel = async (orderId) => {
     try {

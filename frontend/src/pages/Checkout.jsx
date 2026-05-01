@@ -50,114 +50,104 @@ const Checkout = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.fullName || !formData.email || !formData.address || !formData.city || !formData.zipCode) {
-      addNotification('Please fill in all required fields', 'error', null, null);
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-    
-    setSubmitting(true);
-    setCheckingStock(true);
-    
-    const token = localStorage.getItem('authToken'); // GET TOKEN ONCE
-    
-    try {
-      // STEP 1: Verify stock with AUTH HEADER
-      for (const item of safeCartItems) {
-        const itemId = item.wineId || item._id;
-        if (!itemId) continue;
-        
-        try {
-          const stockResponse = await fetch(`${API_URL}/inventory/${itemId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`, // FIX: Add auth header
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (!stockResponse.ok) {
-            if (stockResponse.status === 401) {
-              addNotification('Session expired. Please login again.', 'error', null, null);
-              toast.error("Session expired. Please login again.");
-              navigate('/login');
-              return;
-            }
-            addNotification(`Could not verify stock for ${item.wine}. Please try again.`, 'error', null, null);
-            toast.error(`Could not verify stock for ${item.wine}.`);
-            return;
-          }
-          
-          const stockData = await stockResponse.json();
-          
-          if (stockData.quantity === 0) {
-            addNotification(`Sorry, "${item.wine}" is now out of stock! Please remove it from your cart.`, 'error', null, null);
-            toast.error(`"${item.wine}" is out of stock!`);
-            return;
-          }
-          
-          if (stockData.quantity < (item.quantity || 1)) {
-            addNotification(`Only ${stockData.quantity} bottles of "${item.wine}" available! Please update your cart.`, 'error', null, null);
-            toast.warning(`Only ${stockData.quantity} left for "${item.wine}".`);
-            return;
-          }
-          
-        } catch (fetchError) {
-          console.error(`Stock check failed for ${item.wine}:`, fetchError);
-          addNotification(`Network error checking stock. Please try again.`, 'error', null, null);
-          return;
-        }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!formData.fullName || !formData.email || !formData.address || !formData.city || !formData.zipCode) {
+    addNotification('Please fill in all required fields', 'error', null, null);
+    toast.error("Please fill in all required fields.");
+    return;
+  }
+  
+  setSubmitting(true);
+  setCheckingStock(true);
+  
+  try {
+    // STEP 1: Verify stock with PUBLIC endpoint
+    for (const item of safeCartItems) {
+      const itemId = item.wineId || item._id;
+      if (!itemId) continue;
+      
+      const stockResponse = await fetch(`${API_URL}/inventory/public/${itemId}`);
+      
+      if (!stockResponse.ok) {
+        addNotification(`Could not verify stock for ${item.wine}. Please try again.`, 'error', null, null);
+        toast.error(`Could not verify stock for ${item.wine}.`);
+        return;
       }
       
-      setCheckingStock(false);
-
-      // STEP 2: Prepare order data
-      const orderData = {
-        shippingAddress: {
-          fullName: formData.fullName,
-          email: formData.email,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          phone: formData.phone,
-          deliveryInstructions: formData.deliveryInstructions,
-        },
-        paymentMethod: paymentMethod,
-        items: safeCartItems.map(item => ({
-          wineId: item.wineId || item._id,
-          wine: item.wine,
-          winery: item.winery,
-          price: item.price,
-          image: item.image,
-          quantity: item.quantity || 1,
-        })),
-        subtotal: safeCartTotal,
-        shipping: 0,
-        total: safeCartTotal,
-      };
+      const stockData = await stockResponse.json();
       
-      // STEP 3: Send order to backend
-      const result = await createOrder(orderData);
+      if (stockData.quantity === 0) {
+        addNotification(`Sorry, "${item.wine}" is now out of stock!`, 'error', null, null);
+        toast.error(`"${item.wine}" is out of stock!`);
+        return;
+      }
       
-      // STEP 4: Clear cart after successful order
-      clearCart();
-      
-      addNotification(`Order ${result.order.orderNumber} placed successfully!`, 'success', null, null);
-      toast.success(`Order ${result.order.orderNumber} placed successfully!`);
-      navigate('/orders');
-      
-    } catch (error) {
-      console.error('Order error:', error);
-      addNotification(error.message || 'Failed to place order. Please try again.', 'error', null, null);
-      toast.error(error.message || 'Failed to place order.');
-    } finally {
-      setSubmitting(false);
-      setCheckingStock(false);
+      if (stockData.quantity < (item.quantity || 1)) {
+        addNotification(`Only ${stockData.quantity} bottles of "${item.wine}" available!`, 'error', null, null);
+        toast.warning(`Only ${stockData.quantity} left for "${item.wine}".`);
+        return;
+      }
     }
-  };
+    
+    setCheckingStock(false);
+
+    // STEP 2: Prepare order data
+    const orderData = {
+      shippingAddress: {
+        fullName: formData.fullName,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        phone: formData.phone,
+        deliveryInstructions: formData.deliveryInstructions,
+      },
+      paymentMethod: paymentMethod,
+      items: safeCartItems.map(item => ({
+        wineId: item.wineId || item._id,
+        wine: item.wine,
+        winery: item.winery,
+        price: item.price,
+        image: item.image,
+        quantity: item.quantity || 1,
+        category: item.category || 'reds'
+      })),
+      subtotal: safeCartTotal,
+      shipping: 0,
+      total: safeCartTotal,
+    };
+      
+  // STEP 3: Send order to backend
+    const result = await createOrder(orderData);
+    
+    // STEP 4: Add notification with orderId
+    addNotification(
+      `Order ${result.order.orderNumber} placed successfully!`,
+      'order',
+      null,
+      null,
+      result.order._id  // ← Pass the order ID here
+    );
+    
+    // STEP 5: Clear cart after successful order
+    clearCart();
+    
+    addNotification(`Order ${result.order.orderNumber} placed successfully!`, 'success', null, null);
+    toast.success(`Order ${result.order.orderNumber} placed successfully!`);
+    navigate('/orders');
+    
+  } catch (error) {
+    console.error('Order error:', error);
+    addNotification(error.message || 'Failed to place order. Please try again.', 'error', null, null);
+    toast.error(error.message || 'Failed to place order.');
+  } finally {
+    setSubmitting(false);
+    setCheckingStock(false);
+  }
+};
 
   const getButtonText = () => {
     if (checkingStock) return 'Verifying Stock...';

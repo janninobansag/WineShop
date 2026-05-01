@@ -3794,7 +3794,7 @@ body {
   margin-top: 8px;
 }
 
-/* Scrollbar for notification list */
+/* Scrollbar */
 .notification-list::-webkit-scrollbar {
   width: 4px;
 }
@@ -3819,6 +3819,7 @@ body {
     right: -60px;
   }
 }
+
 
 /* ==================== ORDER DETAIL PAGE ==================== */
 .order-detail-page {
@@ -4763,5 +4764,38 @@ body {
   padding: 6px 10px;
   font-size: 0.78rem;
   color: #888;
+  text-align: center;
+}
+
+/* Stock indicators */
+.low-stock-warning {
+  color: #f1c40f;
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+  background: rgba(241, 196, 15, 0.1);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.out-of-stock-badge {
+  color: #e74c3c;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.out-of-stock-back {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+  padding: 0.25rem;
+  background: rgba(231, 76, 60, 0.15);
+  border-radius: 4px;
   text-align: center;
 }

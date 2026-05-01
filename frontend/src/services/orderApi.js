@@ -1,5 +1,5 @@
 // frontend/src/services/orderApi.js
-const API_URL = 'https://wineshop-api.onrender.com/api';
+import { API_URL } from '../config';
 
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
@@ -15,66 +15,87 @@ const getHeaders = () => {
 
 // Create a new order
 export const createOrder = async (orderData) => {
-  const response = await fetch(`${API_URL}/orders`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(orderData),
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to create order');
+  try {
+    const response = await fetch(`${API_URL}/orders`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(orderData),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create order');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Create order error:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 // Get user's orders
 export const getUserOrders = async () => {
-  const response = await fetch(`${API_URL}/orders`, {
-    headers: getHeaders(),
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch orders');
+  try {
+    const response = await fetch(`${API_URL}/orders`, {
+      headers: getHeaders(),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch orders');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Get orders error:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 // Get order by ID
 export const getOrderById = async (orderId) => {
-  const response = await fetch(`${API_URL}/orders/${orderId}`, {
-    headers: getHeaders(),
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch order');
+  try {
+    const response = await fetch(`${API_URL}/orders/${orderId}`, {
+      headers: getHeaders(),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch order');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Get order error:', error);
+    throw error;
   }
-  
-  return data;
 };
+
 
 // Request cancellation
 export const requestCancellation = async (orderId, reason) => {
-  const response = await fetch(`${API_URL}/orders/${orderId}/cancel-request`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ reason }),
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to request cancellation');
+  try {
+    const response = await fetch(`${API_URL}/orders/${orderId}/cancel-request`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to request cancellation');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Request cancellation error:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export default {

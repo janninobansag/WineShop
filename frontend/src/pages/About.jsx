@@ -12,39 +12,59 @@ const About = () => {
 
       <div className="about-content">
         <div className="about-story">
-          <h2>Our Story</h2>
-          <p>
-            Founded in 2024, WineShop was born out of a simple desire: to make world-class wines accessible to everyone. 
-            We travel to the rolling hills of Tuscany, the sun-drenched vineyards of Napa Valley, and the historic estates 
-            of Bordeaux to bring you a curated selection that you won't find in your local supermarket.
-          </p>
-          <p>
-            We believe that every bottle tells a story. Whether you are celebrating a special occasion, 
-            pairing a meal with the perfect vintage, or simply unwinding after a long day, we have the perfect pour for you.
-          </p>
-        </div>
+  <h2>About This Project</h2>
+  <p>
+    WineShop is a school project developed for educational purposes only. This website was created as a partial 
+    requirement for our course, demonstrating our skills in full-stack web development using the MERN stack 
+    (MongoDB, Express.js, React, and Node.js).
+  </p>
+  <p>
+    This project showcases an e-commerce platform for wine sales, featuring user authentication, product 
+    management, shopping cart functionality, order processing, inventory management, and admin dashboard. 
+    All wines and images used are for demonstration purposes only.
+  </p>
+</div>
 
-        <div className="about-values">
-          <h2>Why Choose Us?</h2>
-          <div className="values-grid">
-            <div className="value-card">
-              <h3>🍇 Curated Selection</h3>
-              <p>Every wine in our collection is hand-picked by our expert sommeliers for its quality, taste, and story.</p>
-            </div>
-            <div className="value-card">
-              <h3>✈️ Global Sourcing</h3>
-              <p>We partner directly with family-owned vineyards across 15 different countries to bring the world to your doorstep.</p>
-            </div>
-            <div className="value-card">
-              <h3>📦 Secure Packaging</h3>
-              <p>Our bottles are packed in specialized shock-absorbent materials to ensure they arrive in pristine condition.</p>
-            </div>
-            <div className="value-card">
-              <h3>🤝 Customer First</h3>
-              <p>Have a question? Our dedicated wine experts are available 24/7 to help you find exactly what you're looking for.</p>
-            </div>
-          </div>
-        </div>
+<div className="about-values">
+  <h2>Our Team</h2>
+  <div className="values-grid">
+    <div className="value-card">
+      <h3>Aki Sato Katto</h3>
+      <p>3rd Year Student</p>
+      
+    </div>
+     <div className="value-card">
+      <h3>Jan Niño Andrie M. Bansag</h3>
+      <p>3rd Year Student</p>
+      <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>Full Stack Developer</p>
+    </div>
+    <div className="value-card">
+      <h3>Kimuelle Daño</h3>
+      <p>3rd Year Student</p>
+      
+    </div>
+   
+    <div className="value-card">
+      <h3>Richard</h3>
+      <p>3rd Year Student</p>
+      
+    </div>
+  </div>
+</div>
+
+<div className="about-cta" style={{ marginTop: '2rem', textAlign: 'center' }}>
+  <p style={{ color: '#888', marginBottom: '1rem' }}>
+    University of Cebu Pardo-Talisay (UCPT) | 3rd Year - BS Information Technology
+  </p>
+  <p style={{ color: '#666', fontSize: '0.85rem' }}>
+    Instructor: Mr. Carlo Petalver
+  </p>
+  <p style={{ color: '#555', fontSize: '0.8rem', marginTop: '1rem' }}>
+    This website is for educational purposes only. All product images and descriptions are for demonstration.
+  </p>
+</div>
+
+        
 
         <Link to="/" className="auth-btn about-cta">Start Shopping</Link>
       </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GiWineBottle } from 'react-icons/gi';
+import { FiMail, FiPhone } from 'react-icons/fi';
 import '../App.css';
 
 const Footer = () => {
@@ -15,7 +16,7 @@ const Footer = () => {
             <span>WineShop</span>
           </Link>
           <p className="footer-desc">
-            Premium wines delivered to your door. Curated selections from the world's finest vineyards since 2024.
+            Premium wines delivered to your door. Curated selections from the world's finest vineyards since 2026.
           </p>
         </div>
 
@@ -39,11 +40,11 @@ const Footer = () => {
         {/* Column 4: Contact */}
         <div className="footer-col">
           <h4>Contact Us</h4>
-          <p>📧 kimuelldano@gmail.com</p>
-          <p>📧 janninobansag@gmail.com</p>
-          <p>📧 akisato203@gmail.com</p>
-          <p>📧 richarddean.segovia1@gmail.com</p>
-          <p>📞 +63 949 798 7581</p>
+          <p className="footer-contact-item"><FiMail size={14} /> kimuelldano@gmail.com</p>
+          <p className="footer-contact-item"><FiMail size={14} /> janninobansag@gmail.com</p>
+          <p className="footer-contact-item"><FiMail size={14} /> akisato203@gmail.com</p>
+          <p className="footer-contact-item"><FiMail size={14} /> richarddean.segovia1@gmail.com</p>
+          <p className="footer-contact-item"><FiPhone size={14} /> +63 949 798 7581</p>
         </div>
 
       </div>
