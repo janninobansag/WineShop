@@ -40,40 +40,6 @@ const getInventoryByWineId = async (req, res) => {
   }
 };
 
-// Get inventory stats
-const getInventoryStats = async (req, res) => {
-  try {
-    const inventory = await Inventory.find();
-    
-    // Calculate stats manually
-    let totalItems = inventory.length;
-    let lowStock = 0;
-    let totalValue = 0;
-    
-    for (const item of inventory) {
-      // Calculate total value
-      const price = item.price || 20;
-      totalValue += (item.quantity || 0) * price;
-      
-      // Count low stock items
-      const threshold = item.lowStockThreshold || 10;
-      if ((item.quantity || 0) <= threshold) {
-        lowStock++;
-      }
-    }
-    
-    // Return stats object, NOT the inventory array
-    res.json({
-      totalItems: totalItems,
-      lowStock: lowStock,
-      totalValue: Math.round(totalValue)
-    });
-  } catch (error) {
-    console.error('Get inventory stats error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
 // Create or update inventory
 const updateInventory = async (req, res) => {
   try {
@@ -176,13 +142,41 @@ const initializeInventory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const getInventoryStats = async (req, res) => {
+  try {
+    const inventory = await Inventory.find();
+    
+    let totalItems = inventory.length;
+    let lowStock = 0;
+    let totalValue = 0;
+    
+    for (const item of inventory) {
+      const price = item.price || 20;
+      totalValue += (item.quantity || 0) * price;
+      
+      const threshold = item.lowStockThreshold || 10;
+      if ((item.quantity || 0) <= threshold) {
+        lowStock++;
+      }
+    }
+    
+    res.json({
+      totalItems,
+      lowStock,
+      totalValue: Math.round(totalValue)
+    });
+  } catch (error) {
+    console.error('Get inventory stats error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   getAllInventory,
   getLowStockItems,
   getInventoryByWineId,
-  getInventoryStats,
   updateInventory,
   adjustStock,
-  initializeInventory
+  initializeInventory,
+  getInventoryStats
 };
