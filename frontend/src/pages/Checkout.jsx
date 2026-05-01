@@ -15,7 +15,6 @@ const Checkout = () => {
   const { addNotification } = useNotification();
   const navigate = useNavigate();
   
-  // SAFETY: Ensure cartItems is always an array
   const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
   const safeCartTotal = cartTotal || 0;
   
@@ -34,7 +33,6 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [checkingStock, setCheckingStock] = useState(false);
 
-  // If cart is empty, redirect to home
   if (safeCartItems.length === 0 && !submitting) {
     return (
       <div className="empty-cart">
@@ -55,7 +53,6 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form
     if (!formData.fullName || !formData.email || !formData.address || !formData.city || !formData.zipCode) {
       addNotification('Please fill in all required fields', 'error', null, null);
       toast.error("Please fill in all required fields.");
@@ -65,19 +62,32 @@ const Checkout = () => {
     setSubmitting(true);
     setCheckingStock(true);
     
+    const token = localStorage.getItem('authToken'); // GET TOKEN ONCE
+    
     try {
-      // STEP 1: Verify stock for ALL items in cart before placing order
+      // STEP 1: Verify stock with AUTH HEADER
       for (const item of safeCartItems) {
         const itemId = item.wineId || item._id;
         if (!itemId) continue;
         
         try {
-          const stockResponse = await fetch(`${API_URL}/inventory/${itemId}`);
+          const stockResponse = await fetch(`${API_URL}/inventory/${itemId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`, // FIX: Add auth header
+              'Content-Type': 'application/json'
+            }
+          });
           
           if (!stockResponse.ok) {
+            if (stockResponse.status === 401) {
+              addNotification('Session expired. Please login again.', 'error', null, null);
+              toast.error("Session expired. Please login again.");
+              navigate('/login');
+              return;
+            }
             addNotification(`Could not verify stock for ${item.wine}. Please try again.`, 'error', null, null);
             toast.error(`Could not verify stock for ${item.wine}.`);
-            return; // Halt checkout
+            return;
           }
           
           const stockData = await stockResponse.json();
@@ -85,25 +95,25 @@ const Checkout = () => {
           if (stockData.quantity === 0) {
             addNotification(`Sorry, "${item.wine}" is now out of stock! Please remove it from your cart.`, 'error', null, null);
             toast.error(`"${item.wine}" is out of stock!`);
-            return; // Halt checkout
+            return;
           }
           
           if (stockData.quantity < (item.quantity || 1)) {
             addNotification(`Only ${stockData.quantity} bottles of "${item.wine}" available! Please update your cart.`, 'error', null, null);
             toast.warning(`Only ${stockData.quantity} left for "${item.wine}".`);
-            return; // Halt checkout
+            return;
           }
           
         } catch (fetchError) {
           console.error(`Stock check failed for ${item.wine}:`, fetchError);
-          addNotification(`Network error checking stock for ${item.wine}. Please try again.`, 'error', null, null);
-          return; // Halt checkout for safety
+          addNotification(`Network error checking stock. Please try again.`, 'error', null, null);
+          return;
         }
       }
       
       setCheckingStock(false);
 
-      // STEP 2: Prepare order data for MongoDB
+      // STEP 2: Prepare order data
       const orderData = {
         shippingAddress: {
           fullName: formData.fullName,
@@ -135,7 +145,7 @@ const Checkout = () => {
       // STEP 4: Clear cart after successful order
       clearCart();
       
-      addNotification(`Order ${result.order.orderNumber} placed successfully! Thank you for your purchase.`, 'success', null, null);
+      addNotification(`Order ${result.order.orderNumber} placed successfully!`, 'success', null, null);
       toast.success(`Order ${result.order.orderNumber} placed successfully!`);
       navigate('/orders');
       
@@ -160,7 +170,6 @@ const Checkout = () => {
       <h2>Checkout</h2>
       
       <div className="checkout-grid">
-        {/* Shipping Information Form */}
         <div className="checkout-form">
           <h3>Shipping Information</h3>
           <form onSubmit={handleSubmit}>
@@ -252,7 +261,6 @@ const Checkout = () => {
               />
             </div>
             
-            {/* Delivery Instructions Field */}
             <div className="form-group">
               <label>Delivery Instructions</label>
               <textarea
@@ -270,7 +278,6 @@ const Checkout = () => {
               </small>
             </div>
             
-            {/* Payment Method */}
             <div className="payment-method-section">
               <h3>Payment Method</h3>
               <label className="radio-label">
@@ -315,7 +322,6 @@ const Checkout = () => {
           </form>
         </div>
         
-        {/* Order Summary */}
         <div className="order-review">
           <h3>Order Summary</h3>
           
@@ -357,7 +363,6 @@ const Checkout = () => {
             {getButtonText()}
           </button>
           
-          {/* Optional: Verification notice under button */}
           {checkingStock && (
             <p style={{ 
               textAlign: 'center', 
