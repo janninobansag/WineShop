@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// Import controllers - remove duplicate
 const {
   getAllInventory,
   getLowStockItems,
@@ -10,17 +9,22 @@ const {
   updateInventory,
   adjustStock,
   initializeInventory,
-  getInventoryStats  // Import this once
+  getInventoryStats
 } = require('../controllers/inventoryController');
 
-// All inventory routes require admin access
+// ========== PUBLIC ROUTE - NO AUTHENTICATION ==========
+// This MUST be before any protect middleware
+router.get('/public/:wineId', getInventoryByWineId);
+
+// ========== PROTECTED ROUTES ==========
+router.get('/:wineId', protect, getInventoryByWineId);
+
+// ========== ADMIN ONLY ROUTES ==========
 router.use(protect, admin);
 
-// Define routes - remove duplicate /stats
 router.get('/', getAllInventory);
-router.get('/stats', getInventoryStats);  // Only once
+router.get('/stats', getInventoryStats);
 router.get('/low-stock', getLowStockItems);
-router.get('/:wineId', getInventoryByWineId);
 router.put('/:wineId', updateInventory);
 router.patch('/:wineId/adjust', adjustStock);
 router.post('/initialize', initializeInventory);
