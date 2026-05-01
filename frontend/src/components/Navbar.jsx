@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiShoppingCart, FiChevronDown, FiLogOut, FiBell, FiPackage, FiX, FiCheckCircle, FiTruck, FiClock } from 'react-icons/fi';
+import { FiShoppingCart, FiChevronDown, FiLogOut, FiBell, FiPackage, FiX, FiCheckCircle, FiTruck, FiClock, FiShoppingBag } from 'react-icons/fi';
 import { GiWineBottle } from 'react-icons/gi';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -27,17 +27,20 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
     { name: 'Sparkling', value: 'sparkling' },
   ];
 
-  // Close dropdowns if clicked outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
+      // Close category dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
       }
+      // Close notification dropdown - ONLY when clicking outside both button and dropdown
       if (notifRef.current && !notifRef.current.contains(e.target) && 
           notifButtonRef.current && !notifButtonRef.current.contains(e.target)) {
         setIsNotifOpen(false);
       }
     };
+    
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -50,36 +53,37 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'order': return <FiPackage size={14} />;
-      case 'cart': return <FiShoppingCart size={14} />;
+      case 'cart': return <FiShoppingBag size={14} />;
       case 'delivered': return <FiCheckCircle size={14} />;
       case 'shipped': return <FiTruck size={14} />;
       default: return <FiBell size={14} />;
     }
   };
 
-  const handleNotificationClick = (notification) => {
-    // Mark as read
-    if (notification.id) {
-      markAsRead(notification.id);
-    }
-    
-    // Navigate based on notification type and orderId
-    if (notification.orderId) {
-      // If there's a specific order ID, go to that order
-      navigate(`/orders/${notification.orderId}`);
-    } else if (notification.type === 'order') {
-      navigate('/orders');
-    } else if (notification.type === 'cart') {
-      navigate('/cart');
-    }
-    
-    // Close dropdown
-    setIsNotifOpen(false);
-  };
+const handleNotificationClick = (notification) => {
+  // Mark as read
+  if (notification._id) {
+    markAsRead(notification._id);
+  }
+  
+  // Navigate based on notification type
+  if (notification.type === 'order' && notification.orderId) {
+    // Go to specific order details
+    navigate(`/orders/${notification.orderId}`);
+  } else if (notification.type === 'order') {
+    navigate('/orders');
+  } else if (notification.type === 'cart') {
+    navigate('/cart');
+  }
+  
+  // Close dropdown
+  setIsNotifOpen(false);
+};
 
   const getTimeAgo = (timestamp) => {
     if (!timestamp) return '';
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    const date = new Date(timestamp);
+    const seconds = Math.floor((Date.now() - date) / 1000);
     if (seconds < 60) return 'just now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -87,6 +91,12 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
+  };
+
+  const toggleNotifDropdown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsNotifOpen(!isNotifOpen);
   };
 
   return (
@@ -131,7 +141,7 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
             <button 
               ref={notifButtonRef}
               className="nav-link bell-btn" 
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              onClick={toggleNotifDropdown}
             >
               <FiBell size={22} />
               {unreadCount > 0 && <span className="cart-badge">{unreadCount}</span>}
@@ -142,7 +152,14 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
                 <div className="notification-header">
                   <span>Notifications</span>
                   {notifications.length > 0 && (
-                    <button onClick={() => { clearAll(); setIsNotifOpen(false); }} className="clear-notif-btn">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearAll();
+                        setIsNotifOpen(false);
+                      }} 
+                      className="clear-notif-btn"
+                    >
                       <FiX size={14} /> Clear all
                     </button>
                   )}
@@ -155,9 +172,9 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
                       <p>No notifications yet</p>
                     </div>
                   ) : (
-                    notifications.slice(0, 10).map((notification) => (
+                    notifications.map((notification) => (
                       <div 
-                        key={notification.id || notification._id} 
+                        key={notification._id || notification.id} 
                         className={`notification-item ${!notification.read ? 'unread' : ''}`}
                         onClick={() => handleNotificationClick(notification)}
                       >
@@ -174,7 +191,7 @@ const Navbar = ({ activeCategory, setActiveCategory }) => {
                             <span className="notification-wine">{notification.wineName}</span>
                           )}
                           <span className="notification-time">
-                            {getTimeAgo(notification.timestamp || notification.id)}
+                            {getTimeAgo(notification.createdAt || notification.timestamp || notification.id)}
                           </span>
                         </div>
                         {!notification.read && <div className="notification-dot" />}

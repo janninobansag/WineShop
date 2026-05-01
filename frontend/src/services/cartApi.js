@@ -1,5 +1,5 @@
 // frontend/src/services/cartApi.js
-const API_URL = 'https://wineshop-api.onrender.com/api';
+import { API_URL } from '../config';
 
 const getAuthToken = () => {
   return localStorage.getItem('authToken');

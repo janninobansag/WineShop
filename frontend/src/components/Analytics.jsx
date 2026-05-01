@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import { FiCalendar, FiTrendingUp, FiTrendingDown, FiDollarSign, FiUsers, FiPackage, FiShoppingBag } from 'react-icons/fi';
+import { API_URL } from '../config';
 
 ChartJS.register(
   CategoryScale,
@@ -29,7 +30,7 @@ ChartJS.register(
 );
 
 const Analytics = ({ orders, users, wines }) => {
-  const [timeRange, setTimeRange] = useState('week'); // week, month, year
+  const [timeRange, setTimeRange] = useState('week');
   const [analyticsData, setAnalyticsData] = useState({
     revenueData: [],
     orderData: [],
@@ -37,10 +38,40 @@ const Analytics = ({ orders, users, wines }) => {
     categoryDistribution: [],
     dailyStats: []
   });
+  const [wineCategories, setWineCategories] = useState({});
+
+  // Fetch wine categories from database
+  useEffect(() => {
+    const fetchWineCategories = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const categories = ['reds', 'whites', 'rose', 'sparkling'];
+        const categoryMap = {};
+        
+        for (const cat of categories) {
+          const response = await fetch(`${API_URL}/wines/${cat}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          if (data.data) {
+            data.data.forEach(wine => {
+              categoryMap[wine._id] = cat;
+              categoryMap[wine.wine] = cat;
+            });
+          }
+        }
+        setWineCategories(categoryMap);
+      } catch (error) {
+        console.error('Error fetching wine categories:', error);
+      }
+    };
+    
+    fetchWineCategories();
+  }, []);
 
   useEffect(() => {
     processAnalyticsData();
-  }, [orders, timeRange]);
+  }, [orders, timeRange, wineCategories]);
 
   const getDateRange = () => {
     const now = new Date();
@@ -54,6 +85,15 @@ const Analytics = ({ orders, users, wines }) => {
       default:
         return { start: new Date(now.setDate(now.getDate() - 7)), end: new Date() };
     }
+  };
+
+  const getCategoryFromWine = (wineId, wineName) => {
+    // First try by wine ID
+    if (wineCategories[wineId]) return wineCategories[wineId];
+    // Then try by wine name
+    if (wineCategories[wineName]) return wineCategories[wineName];
+    // Default to 'reds'
+    return 'reds';
   };
 
   const processAnalyticsData = () => {
@@ -87,7 +127,7 @@ const Analytics = ({ orders, users, wines }) => {
       .slice(0, 5)
       .map(([name, sales]) => ({ name, sales }));
     
-    // Category distribution
+    // Category distribution - FIXED: Get from wineCategories
     const categoryCount = {
       'Red Wines': 0,
       'White Wines': 0,
@@ -97,10 +137,15 @@ const Analytics = ({ orders, users, wines }) => {
     
     filteredOrders.forEach(order => {
       order.items?.forEach(item => {
-        const category = item.category === 'reds' ? 'Red Wines' :
-                        item.category === 'whites' ? 'White Wines' :
-                        item.category === 'rose' ? 'Rosé Wines' : 'Sparkling Wines';
-        categoryCount[category] += (item.quantity || 0);
+        const wineCategory = getCategoryFromWine(item.wineId, item.wine);
+        
+        let categoryName = 'Sparkling Wines';
+        if (wineCategory === 'reds') categoryName = 'Red Wines';
+        else if (wineCategory === 'whites') categoryName = 'White Wines';
+        else if (wineCategory === 'rose') categoryName = 'Rosé Wines';
+        else if (wineCategory === 'sparkling') categoryName = 'Sparkling Wines';
+        
+        categoryCount[categoryName] += (item.quantity || 0);
       });
     });
     
@@ -118,53 +163,44 @@ const Analytics = ({ orders, users, wines }) => {
 
   const revenueChartData = {
     labels: analyticsData.revenueData?.labels || [],
-    datasets: [
-      {
-        label: 'Revenue ($)',
-        data: analyticsData.revenueData?.values || [],
-        backgroundColor: 'rgba(197, 160, 89, 0.5)',
-        borderColor: '#C5A059',
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4
-      }
-    ]
+    datasets: [{
+      label: 'Revenue ($)',
+      data: analyticsData.revenueData?.values || [],
+      backgroundColor: 'rgba(197, 160, 89, 0.5)',
+      borderColor: '#C5A059',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.4
+    }]
   };
 
   const ordersChartData = {
     labels: analyticsData.orderData?.labels || [],
-    datasets: [
-      {
-        label: 'Number of Orders',
-        data: analyticsData.orderData?.values || [],
-        backgroundColor: 'rgba(114, 47, 55, 0.5)',
-        borderColor: '#722F37',
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4
-      }
-    ]
+    datasets: [{
+      label: 'Number of Orders',
+      data: analyticsData.orderData?.values || [],
+      backgroundColor: 'rgba(114, 47, 55, 0.5)',
+      borderColor: '#722F37',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.4
+    }]
   };
 
   const categoryChartData = {
     labels: Object.keys(analyticsData.categoryDistribution || {}),
-    datasets: [
-      {
-        data: Object.values(analyticsData.categoryDistribution || {}),
-        backgroundColor: ['#C5A059', '#722F37', '#9b59b6', '#3498db'],
-        borderWidth: 0,
-      }
-    ]
+    datasets: [{
+      data: Object.values(analyticsData.categoryDistribution || {}),
+      backgroundColor: ['#C5A059', '#722F37', '#9b59b6', '#3498db'],
+      borderWidth: 0,
+    }]
   };
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'top',
-        labels: { color: '#ccc' }
-      },
+      legend: { position: 'top', labels: { color: '#ccc' } },
       tooltip: {
         backgroundColor: '#1a1a1a',
         titleColor: '#C5A059',
@@ -174,14 +210,8 @@ const Analytics = ({ orders, users, wines }) => {
       }
     },
     scales: {
-      y: {
-        grid: { color: '#2a2a2a' },
-        ticks: { color: '#888' }
-      },
-      x: {
-        grid: { color: '#2a2a2a' },
-        ticks: { color: '#888' }
-      }
+      y: { grid: { color: '#2a2a2a' }, ticks: { color: '#888' } },
+      x: { grid: { color: '#2a2a2a' }, ticks: { color: '#888' } }
     }
   };
 
@@ -189,10 +219,7 @@ const Analytics = ({ orders, users, wines }) => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { color: '#ccc', padding: 10 }
-      },
+      legend: { position: 'bottom', labels: { color: '#ccc', padding: 10 } },
       tooltip: {
         backgroundColor: '#1a1a1a',
         titleColor: '#C5A059',
@@ -203,58 +230,39 @@ const Analytics = ({ orders, users, wines }) => {
 
   return (
     <div className="analytics-dashboard">
-      {/* Time Range Selector */}
       <div className="analytics-header">
         <h2><FiTrendingUp /> Sales Analytics</h2>
         <div className="time-range-selector">
-          <button className={timeRange === 'week' ? 'active' : ''} onClick={() => setTimeRange('week')}>
-            Last 7 Days
-          </button>
-          <button className={timeRange === 'month' ? 'active' : ''} onClick={() => setTimeRange('month')}>
-            Last 30 Days
-          </button>
-          <button className={timeRange === 'year' ? 'active' : ''} onClick={() => setTimeRange('year')}>
-            Last 12 Months
-          </button>
+          <button className={timeRange === 'week' ? 'active' : ''} onClick={() => setTimeRange('week')}>Last 7 Days</button>
+          <button className={timeRange === 'month' ? 'active' : ''} onClick={() => setTimeRange('month')}>Last 30 Days</button>
+          <button className={timeRange === 'year' ? 'active' : ''} onClick={() => setTimeRange('year')}>Last 12 Months</button>
         </div>
       </div>
 
-      {/* Key Metrics Cards */}
       <div className="analytics-stats-grid">
         <div className="analytics-stat-card">
-          <div className="stat-icon revenue">
-            <FiDollarSign size={24} />
-          </div>
+          <div className="stat-icon revenue"><FiDollarSign size={24} /></div>
           <div className="stat-info">
             <span className="stat-label">Total Revenue</span>
             <span className="stat-value">${analyticsData.totalRevenue?.toFixed(2) || '0.00'}</span>
           </div>
         </div>
-        
         <div className="analytics-stat-card">
-          <div className="stat-icon orders">
-            <FiShoppingBag size={24} />
-          </div>
+          <div className="stat-icon orders"><FiShoppingBag size={24} /></div>
           <div className="stat-info">
             <span className="stat-label">Total Orders</span>
             <span className="stat-value">{analyticsData.totalOrders || 0}</span>
           </div>
         </div>
-        
         <div className="analytics-stat-card">
-          <div className="stat-icon avg">
-            <FiTrendingUp size={24} />
-          </div>
+          <div className="stat-icon avg"><FiTrendingUp size={24} /></div>
           <div className="stat-info">
             <span className="stat-label">Avg Order Value</span>
             <span className="stat-value">${analyticsData.averageOrderValue || '0.00'}</span>
           </div>
         </div>
-        
         <div className="analytics-stat-card">
-          <div className="stat-icon users">
-            <FiUsers size={24} />
-          </div>
+          <div className="stat-icon users"><FiUsers size={24} /></div>
           <div className="stat-info">
             <span className="stat-label">Active Users</span>
             <span className="stat-value">{users?.length || 0}</span>
@@ -262,29 +270,19 @@ const Analytics = ({ orders, users, wines }) => {
         </div>
       </div>
 
-      {/* Charts Grid */}
       <div className="analytics-charts-grid">
         <div className="chart-card">
           <h3>Revenue Trend</h3>
-          <div className="chart-container">
-            <Bar data={revenueChartData} options={chartOptions} />
-          </div>
+          <div className="chart-container"><Bar data={revenueChartData} options={chartOptions} /></div>
         </div>
-        
         <div className="chart-card">
           <h3>Orders Trend</h3>
-          <div className="chart-container">
-            <Line data={ordersChartData} options={chartOptions} />
-          </div>
+          <div className="chart-container"><Line data={ordersChartData} options={chartOptions} /></div>
         </div>
-        
         <div className="chart-card">
           <h3>Category Distribution</h3>
-          <div className="chart-container doughnut-container">
-            <Doughnut data={categoryChartData} options={doughnutOptions} />
-          </div>
+          <div className="chart-container doughnut-container"><Doughnut data={categoryChartData} options={doughnutOptions} /></div>
         </div>
-        
         <div className="chart-card">
           <h3>Top Selling Wines</h3>
           <div className="top-products-list">
@@ -296,35 +294,23 @@ const Analytics = ({ orders, users, wines }) => {
                   <span className="product-sales">{product.sales} sold</span>
                 </div>
               ))
-            ) : (
-              <p className="no-data">No sales data available</p>
-            )}
+            ) : <p className="no-data">No sales data available</p>}
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="quick-stats">
         <div className="quick-stat-item">
           <FiPackage size={20} />
-          <div>
-            <span>{wines?.length || 0}</span>
-            <small>Total Products</small>
-          </div>
+          <div><span>{wines?.length || 0}</span><small>Total Products</small></div>
         </div>
         <div className="quick-stat-item">
           <FiTrendingUp size={20} />
-          <div>
-            <span>{orders?.filter(o => o.status === 'delivered').length || 0}</span>
-            <small>Completed Orders</small>
-          </div>
+          <div><span>{orders?.filter(o => o.status === 'delivered').length || 0}</span><small>Completed Orders</small></div>
         </div>
         <div className="quick-stat-item">
           <FiTrendingDown size={20} />
-          <div>
-            <span>{orders?.filter(o => o.status === 'cancelled').length || 0}</span>
-            <small>Cancelled Orders</small>
-          </div>
+          <div><span>{orders?.filter(o => o.status === 'cancelled').length || 0}</span><small>Cancelled Orders</small></div>
         </div>
       </div>
     </div>
