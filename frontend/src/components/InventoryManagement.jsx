@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiPackage, FiAlertCircle, FiPlus, FiMinus, FiEdit, FiSave, FiX, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import { useNotification } from '../context/NotificationContext';
+const API_URL = 'https://wineshop-api.onrender.com/api';
 
 const InventoryManagement = () => {
   const [inventory, setInventory] = useState([]);
