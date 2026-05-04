@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FiPackage, FiSettings, FiTruck, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiPackage, FiSettings, FiTruck, FiCheckCircle, FiXCircle, FiStar } from 'react-icons/fi';
 import { getUserOrders, requestCancellation } from '../services/orderApi';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -15,6 +15,7 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated } = useAuth();
   const { addNotification } = useNotification();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -71,10 +72,14 @@ const Orders = () => {
     try {
       await requestCancellation(selectedOrder._id, reason);
       addNotification('Cancellation request submitted. Admin will review it.', 'info', null, null);
-      await fetchOrders(); // Refresh orders
+      await fetchOrders();
     } catch (error) {
       addNotification(error.message || 'Failed to submit cancellation request', 'error', null, null);
     }
+  };
+
+  const handleReviewClick = (wineId) => {
+    navigate(`/wine/${wineId}`);
   };
 
   const getTimelineSteps = (status) => {
@@ -127,6 +132,7 @@ const Orders = () => {
         const cancellable = canCancel(order.status);
         const isCancelled = order.status === 'cancelled';
         const isCancellationRequested = order.status === 'cancellation_requested';
+        const isDelivered = order.status === 'delivered';
         
         return (
           <div key={order._id} className={`order-card ${isCancelled ? 'cancelled-order' : ''}`}>
@@ -148,6 +154,15 @@ const Orders = () => {
                     <p><strong>{item.wine}</strong></p>
                     <p>{item.winery}</p>
                     <p>Qty: {item.quantity} × ${item.price}</p>
+                    {/* ADD REVIEW BUTTON FOR DELIVERED ORDERS */}
+                    {isDelivered && (
+                      <button 
+                        className="review-order-btn"
+                        onClick={() => handleReviewClick(item.wineId)}
+                      >
+                        <FiStar /> Write a Review
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

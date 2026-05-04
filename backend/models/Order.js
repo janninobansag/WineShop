@@ -101,6 +101,10 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  deliveredAt: {
+  type: Date,
+  default: null
+}
 });
 
 orderSchema.pre('save', function() {

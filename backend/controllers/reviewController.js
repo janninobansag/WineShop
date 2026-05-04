@@ -1,7 +1,7 @@
 const Review = require('../models/Review');
 const Wine = require('../models/Wine');
 
-// Add a review to a wine
+// Add a review to a wine (allow multiple reviews)
 const addReview = async (req, res) => {
   try {
     const { wineId } = req.params;
@@ -9,11 +9,11 @@ const addReview = async (req, res) => {
     const userId = req.user.id;
     const userName = req.user.name || req.user.email;
 
-    // Check if user already reviewed this wine
-    const existingReview = await Review.findOne({ wineId, userId });
-    if (existingReview) {
-      return res.status(400).json({ message: 'You have already reviewed this wine' });
-    }
+    // REMOVED: duplicate review check - now users can review multiple times
+    // const existingReview = await Review.findOne({ wineId, userId });
+    // if (existingReview) {
+    //   return res.status(400).json({ message: 'You have already reviewed this wine' });
+    // }
 
     // Create new review
     const review = await Review.create({
@@ -43,7 +43,7 @@ const getReviewsByWine = async (req, res) => {
     const { wineId } = req.params;
     const reviews = await Review.find({ wineId })
       .sort({ createdAt: -1 })
-      .limit(10);
+      .limit(50); // Increased limit to show more reviews
     
     res.json(reviews);
   } catch (error) {

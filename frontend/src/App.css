@@ -322,6 +322,7 @@ body {
   border: 1px solid #333;
   border-radius: 50px;
   padding: 0.5rem;
+  gap: 0.5rem;
 }
 
 .search-icon {
@@ -349,6 +350,7 @@ body {
   cursor: pointer;
   color: #888;
   font-size: 1rem;
+  
 }
 
 .search-btn {
@@ -924,29 +926,227 @@ body {
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 768px) {
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Tablet Styles (768px - 1024px) */
+@media (max-width: 1024px) {
   .main-content {
-    flex-direction: column;
-  }
-  
-  .filter-sidebar {
-    width: 100%;
-    display: flex;
+    padding: 1rem;
     gap: 1rem;
-    flex-wrap: wrap;
   }
   
-  .filter-section {
-    flex: 1;
-    min-width: 150px;
+  .wine-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
   }
   
   .wine-detail {
     flex-direction: column;
+    padding: 1.5rem;
   }
   
   .wine-detail-image {
     flex: none;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+}
+
+/* Mobile Styles (up to 768px) */
+@media (max-width: 768px) {
+  /* Navbar */
+  .navbar {
+    flex-direction: column;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .navbar-links {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .navbar-brand {
+    margin-bottom: 0.25rem;
+  }
+  
+  .dropbtn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .user-greeting {
+    font-size: 0.8rem;
+  }
+  
+  /* Hero Section */
+  .hero-section {
+    padding: 3rem 1rem;
+  }
+  
+  .hero-section h1 {
+    font-size: 1.8rem;
+  }
+  
+  .hero-section p {
+    font-size: 0.9rem;
+  }
+  
+  /* Search Bar */
+  .search-bar {
+    max-width: 100%;
+    gap: 0.3rem;
+  }
+  
+  .search-icon {
+    margin-left: 0.75rem;
+  }
+  
+  .search-bar input {
+    padding: 0.6rem 0;
+    font-size: 0.85rem;
+  }
+  
+  .search-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .clear-btn {
+    margin-right: 0.1rem;
+  }
+  
+  /* Main Content */
+  .main-content {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  /* Filter Sidebar */
+  .filter-sidebar {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .filter-sidebar h3 {
+    width: 100%;
+    margin-bottom: 0;
+  }
+  
+  .filter-section {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .filter-section button {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  /* Wine Grid */
+  .wine-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  
+  .results-count {
+    font-size: 0.85rem;
+  }
+  
+  /* Flip Cards */
+  .flip-card {
+    height: 420px;
+  }
+  
+  .flip-card-front .wine-image {
+    height: 220px;
+  }
+  
+  .flip-card-front .wine-name {
+    font-size: 0.85rem;
+  }
+  
+  .flip-card-front .winery {
+    font-size: 0.7rem;
+  }
+  
+  .flip-card-front .wine-price {
+    font-size: 1rem;
+  }
+  
+  .flip-card-back {
+    padding: 0.75rem;
+  }
+  
+  .flip-card-back h3 {
+    font-size: 0.9rem;
+  }
+  
+  .flip-card-back .wine-description {
+    font-size: 0.7rem;
+    max-height: 60px;
+  }
+  
+  .flip-card-back .detail-item {
+    font-size: 0.65rem;
+    padding: 0.3rem 0;
+  }
+  
+  .flip-card-back .wine-price-back {
+    font-size: 1rem;
+  }
+  
+  .flip-card-back .add-to-cart-flip {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Wine Detail Page */
+  .wine-detail-page {
+    padding: 1rem;
+  }
+  
+  .wine-detail {
+    padding: 1rem;
+  }
+  
+  .wine-detail-info h1 {
+    font-size: 1.5rem;
+  }
+  
+  .detail-winery {
+    font-size: 0.9rem;
+  }
+  
+  .detail-price {
+    font-size: 1.5rem;
+  }
+  
+  .add-to-cart-large {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Reviews */
+  .reviews-section {
+    padding: 1rem;
+  }
+  
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .review-card {
+    padding: 1rem;
+  }
+  
+  /* Cart Page */
+  .cart-page {
+    padding: 1rem;
   }
   
   .cart-content {
@@ -962,11 +1162,244 @@ body {
     text-align: center;
   }
   
+  .cart-item-image {
+    width: 100px;
+    height: 140px;
+  }
+  
   .cart-item-actions {
+    justify-content: center;
+  }
+  
+  /* Checkout Page */
+  .checkout-page {
+    padding: 1rem;
+  }
+  
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* Orders Page */
+  .orders-page {
+    padding: 1rem;
+  }
+  
+  .order-card {
+    padding: 1rem;
+  }
+  
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .order-items-list {
+    flex-direction: column;
+  }
+  
+  .order-item-mini {
+    width: 100%;
+  }
+  
+  .tracker-timeline {
     flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .timeline-line {
+    display: none;
+  }
+  
+  /* Admin Dashboard */
+  .admin-dashboard {
+    padding: 1rem;
+  }
+  
+  .admin-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .admin-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .admin-tab {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .admin-table-container {
+    overflow-x: auto;
+  }
+  
+  .admin-table {
+    font-size: 0.75rem;
+    min-width: 600px;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem;
+  }
+  
+  .admin-cancel-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  /* Analytics */
+  .analytics-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .analytics-charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .time-range-selector {
+    width: 100%;
+  }
+  
+  .time-range-selector button {
+    flex: 1;
+    text-align: center;
+    font-size: 0.75rem;
+    padding: 0.4rem;
+  }
+  
+  /* Inventory */
+  .inventory-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .inventory-header {
+    flex-direction: column;
+  }
+  
+  .inventory-actions {
+    width: 100%;
+  }
+  
+  /* Auth Pages */
+  .auth-container {
+    padding: 1rem;
+  }
+  
+  .auth-form {
+    padding: 1.5rem;
+  }
+  
+  .auth-form h1 {
+    font-size: 1.5rem;
+  }
+  
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .footer-container {
+    padding: 2rem 1rem 0 1rem;
+  }
+  
+  /* Pagination */
+  .pagination-container {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .page-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .page-num-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+  
+  /* Review Pagination */
+  .review-pagination-container {
+    flex-wrap: wrap;
+  }
+  
+  .review-page-numbers {
+    order: 3;
+    width: 100%;
     justify-content: center;
   }
 }
+
+/* Small Mobile Styles (up to 480px) */
+@media (max-width: 480px) {
+  .hero-section h1 {
+    font-size: 1.5rem;
+  }
+  
+  .wine-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .navbar-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .user-menu {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .filter-section {
+    min-width: 100%;
+  }
+  
+  .cart-item-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .quantity-control {
+    justify-content: center;
+  }
+  
+  .order-item-mini {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .order-item-mini img {
+    margin: 0 auto;
+  }
+  
+  .notification-dropdown {
+    width: 300px;
+    right: -50px;
+  }
+}
+
+.flip-card:active .flip-card-inner {
+    transform: rotateY(180deg);
+  }
 
 /* ==================== AUTH PAGES ==================== */
 .auth-container {
@@ -4798,4 +5231,44 @@ body {
   background: rgba(231, 76, 60, 0.15);
   border-radius: 4px;
   text-align: center;
+}
+
+/* Review Button in Orders */
+.review-order-btn {
+  background: #722F37;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.3s;
+  margin-left: auto;
+}
+
+.review-order-btn:hover {
+  background: #8B0000;
+  transform: scale(1.05);
+}
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #1a1a1a;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .review-order-btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
 }
