@@ -12,6 +12,7 @@ import { useNotification } from '../context/NotificationContext';
 import '../App.css';
 import Analytics from '../components/Analytics';
 import InventoryManagement from '../components/InventoryManagement';
+import { API_URL } from '../config';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -24,9 +25,11 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('orders');
   
-  // Wine Pagination
+  // Pagination states
+  const itemsPerPage = 10;
+  const [currentOrderPage, setCurrentOrderPage] = useState(1);
+  const [currentUserPage, setCurrentUserPage] = useState(1);
   const [currentWinePage, setCurrentWinePage] = useState(1);
-  const winesPerPage = 10;
   
   // User editing state
   const [editingEmail, setEditingEmail] = useState(null);
@@ -51,11 +54,87 @@ const AdminDashboard = () => {
   
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
+  // Pagination calculations for orders
+  const totalOrderPages = Math.ceil(orders.length / itemsPerPage);
+  const indexOfLastOrder = currentOrderPage * itemsPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - itemsPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+  // Pagination calculations for users
+  const totalUserPages = Math.ceil(users.length / itemsPerPage);
+  const indexOfLastUser = currentUserPage * itemsPerPage;
+  const indexOfFirstUser = indexOfLastUser - itemsPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+
   // Pagination calculations for wines
-  const indexOfLastWine = currentWinePage * winesPerPage;
-  const indexOfFirstWine = indexOfLastWine - winesPerPage;
+  const totalWinePages = Math.ceil(wines.length / itemsPerPage);
+  const indexOfLastWine = currentWinePage * itemsPerPage;
+  const indexOfFirstWine = indexOfLastWine - itemsPerPage;
   const currentWines = wines.slice(indexOfFirstWine, indexOfLastWine);
-  const totalWinePages = Math.ceil(wines.length / winesPerPage);
+
+  // Generic pagination helper
+  const getPageNumbers = (currentPage, totalPages) => {
+    const pageNumbers = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    return pageNumbers;
+  };
+
+  const getWinePageNumbers = () => getPageNumbers(currentWinePage, totalWinePages);
+  const getOrderPageNumbers = () => getPageNumbers(currentOrderPage, totalOrderPages);
+  const getUserPageNumbers = () => getPageNumbers(currentUserPage, totalUserPages);
+
+  // Pagination render component
+  const renderPagination = (currentPage, totalPages, setPage, getPageNums, totalItems, indexOfFirst, indexOfLast) => {
+    if (totalPages <= 1) return null;
+    
+    return (
+      <>
+        <div className="admin-pagination">
+          <button 
+            onClick={() => setPage(currentPage - 1)} 
+            disabled={currentPage === 1} 
+            className="pagination-btn"
+          >
+            <FiChevronLeft /> Previous
+          </button>
+          
+          <div className="pagination-numbers">
+            {getPageNums().map(pageNum => (
+              <button 
+                key={pageNum} 
+                onClick={() => setPage(pageNum)} 
+                className={`pagination-num ${currentPage === pageNum ? 'active' : ''}`}
+              >
+                {pageNum}
+              </button>
+            ))}
+          </div>
+          
+          <button 
+            onClick={() => setPage(currentPage + 1)} 
+            disabled={currentPage === totalPages} 
+            className="pagination-btn"
+          >
+            Next <FiChevronRight />
+          </button>
+        </div>
+        
+        <div className="pagination-info">
+          Showing {indexOfFirst + 1} to {Math.min(indexOfLast, totalItems)} of {totalItems} items
+        </div>
+      </>
+    );
+  };
 
   const fetchAdminData = async () => {
     try {
@@ -63,14 +142,14 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('authToken');
       
       // Fetch users
-      const usersResponse = await fetch('https://wineshop-api.onrender.com/api/auth/users', {
+      const usersResponse = await fetch(`${API_URL}/auth/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const usersData = await usersResponse.json();
       setUsers(Array.isArray(usersData) ? usersData : []);
       
       // Fetch orders
-      const ordersResponse = await fetch('https://wineshop-api.onrender.com/api/orders/admin/all', {
+      const ordersResponse = await fetch(`${API_URL}/orders/admin/all`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const ordersData = await ordersResponse.json();
@@ -82,7 +161,7 @@ const AdminDashboard = () => {
       
       for (const category of categories) {
         try {
-          const response = await fetch(`https://wineshop-api.onrender.com/api/wines/${category}`, {
+          const response = await fetch(`${API_URL}/wines/${category}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const data = await response.json();
@@ -127,11 +206,20 @@ const AdminDashboard = () => {
     });
   }, [orders, users, wines]);
 
+  // Reset pagination when data changes
+  useEffect(() => {
+    setCurrentOrderPage(1);
+  }, [orders.length]);
+
+  useEffect(() => {
+    setCurrentUserPage(1);
+  }, [users.length]);
+
   useEffect(() => {
     setCurrentWinePage(1);
   }, [wines.length]);
 
-  // FIXED: Admin Logout Function
+  // Admin Logout Function
   const handleLogout = () => {
     // Clear all authentication and session data
     localStorage.removeItem('authToken');
@@ -179,7 +267,7 @@ const AdminDashboard = () => {
         updateData.password = editUserData.password;
       }
       
-      const response = await fetch(`https://wineshop-api.onrender.com/api/auth/users/${editingUser._id}`, {
+      const response = await fetch(`${API_URL}/auth/users/${editingUser._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -230,7 +318,7 @@ const AdminDashboard = () => {
     if (window.confirm(`Are you sure you want to delete user "${userToDelete?.name}"? This action cannot be undone.`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`https://wineshop-api.onrender.com/api/auth/users/${userId}`, {
+        const response = await fetch(`${API_URL}/auth/users/${userId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -249,56 +337,56 @@ const AdminDashboard = () => {
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ status: newStatus })
-    });
-    
-    if (response.ok) {
-      const order = orders.find(o => o._id === orderId);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
       
-      const statusMessages = {
-        'processing': `⚙️ Your order #${order.orderNumber?.slice(-8)} is now being processed.`,
-        'shipped': `🚚 Your order #${order.orderNumber?.slice(-8)} has been shipped!`,
-        'delivered': `✅ Your order #${order.orderNumber?.slice(-8)} has been delivered!`
-      };
-      
-      if (statusMessages[newStatus]) {
-        // Add notification to MongoDB with orderId
-        await fetch(`${API_URL}/notifications`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            message: statusMessages[newStatus],
-            type: 'order',
-            image: order.items?.[0]?.image || null,
-            wineName: order.items?.[0]?.wine || "Your Order",
-            orderId: orderId  // ← IMPORTANT: Include orderId
-          })
-        });
+      if (response.ok) {
+        const order = orders.find(o => o._id === orderId);
+        
+        const statusMessages = {
+          'processing': `⚙️ Your order #${order.orderNumber?.slice(-8)} is now being processed.`,
+          'shipped': `🚚 Your order #${order.orderNumber?.slice(-8)} has been shipped!`,
+          'delivered': `✅ Your order #${order.orderNumber?.slice(-8)} has been delivered!`
+        };
+        
+        if (statusMessages[newStatus]) {
+          // Add notification to MongoDB with orderId
+          await fetch(`${API_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              message: statusMessages[newStatus],
+              type: 'order',
+              image: order.items?.[0]?.image || null,
+              wineName: order.items?.[0]?.wine || "Your Order",
+              orderId: orderId
+            })
+          });
+        }
+        
+        addNotification(`Order status updated to ${newStatus}`, 'success', null, null);
+        fetchAdminData();
       }
-      
-      addNotification(`Order status updated to ${newStatus}`, 'success', null, null);
-      fetchAdminData();
+    } catch (error) {
+      console.error('Error updating order:', error);
     }
-  } catch (error) {
-    console.error('Error updating order:', error);
-  }
-};
+  };
 
   const handleConfirmCancel = async (orderId) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`https://wineshop-api.onrender.com/api/orders/${orderId}/cancel-approve`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/cancel-approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +409,7 @@ const AdminDashboard = () => {
   const handleDeclineCancel = async (orderId) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`https://wineshop-api.onrender.com/api/orders/${orderId}/cancel-reject`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/cancel-reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -378,7 +466,7 @@ const AdminDashboard = () => {
     if (window.confirm(`Are you sure you want to delete "${wineName}"?`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`https://wineshop-api.onrender.com/api/wines/${wineId}`, {
+        const response = await fetch(`${API_URL}/wines/${wineId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -407,7 +495,7 @@ const AdminDashboard = () => {
       
       let response;
       if (editingWine) {
-        response = await fetch(`https://wineshop-api.onrender.com/api/wines/${editingWine._id}`, {
+        response = await fetch(`${API_URL}/wines/${editingWine._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -416,7 +504,7 @@ const AdminDashboard = () => {
           body: JSON.stringify(wineData)
         });
       } else {
-        response = await fetch('https://wineshop-api.onrender.com/api/wines', {
+        response = await fetch(`${API_URL}/wines`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -437,38 +525,6 @@ const AdminDashboard = () => {
       console.error('Error saving wine:', error);
       addNotification('Error saving wine', 'error', null, null);
     }
-  };
-
-  const goToPreviousWinePage = () => {
-    if (currentWinePage > 1) {
-      setCurrentWinePage(currentWinePage - 1);
-    }
-  };
-
-  const goToNextWinePage = () => {
-    if (currentWinePage < totalWinePages) {
-      setCurrentWinePage(currentWinePage + 1);
-    }
-  };
-
-  const goToWinePage = (pageNum) => {
-    setCurrentWinePage(pageNum);
-  };
-
-  const getWinePageNumbers = () => {
-    const pageNumbers = [];
-    const maxVisible = 5;
-    let startPage = Math.max(1, currentWinePage - Math.floor(maxVisible / 2));
-    let endPage = Math.min(totalWinePages, startPage + maxVisible - 1);
-    
-    if (endPage - startPage + 1 < maxVisible) {
-      startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
-    }
-    return pageNumbers;
   };
 
   const getStatusIcon = (status) => {
@@ -536,7 +592,7 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* ORDERS SECTION */}
+      {/* ORDERS SECTION WITH PAGINATION */}
       {activeTab === 'orders' && (
         <div className="admin-table-container">
           <h3>Manage Orders & Shipping</h3>
@@ -544,194 +600,218 @@ const AdminDashboard = () => {
           {orders.length === 0 ? (
             <p className="empty-table">No orders yet.</p>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th style={{width:'100px'}}>Order #</th>
-                  <th>Customer</th>
-                  <th>Total</th>
-                  <th style={{width:'220px'}}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map(order => {
-                  const isPendingCancel = order.status === 'cancellation_requested';
-                  const isCancelled = order.status === 'cancelled';
-                  const isExpanded = expandedOrderId === order._id;
-                  
-                  return (
-                    <React.Fragment key={order._id}>
-                      <tr className={isCancelled ? 'cancelled-table-row' : ''} style={{cursor:'pointer'}} onClick={() => setExpandedOrderId(isExpanded ? null : order._id)}>
-                        <td style={{color: '#C5A059', fontWeight:'bold'}}>
-                          #{order.orderNumber?.slice(-8) || order._id?.slice(-8)}
-                          <span style={{fontSize:'0.7rem', color:'#888', display:'block'}}>▼ Click to expand</span>
-                        </td>
-                        <td style={{color:'#ccc'}}>{order.userName}</td>
-                        <td style={{color: isCancelled ? '#666' : '#C5A059', fontWeight: 'bold', textDecoration: isCancelled ? 'line-through' : 'none'}}>${(order.total || 0).toFixed(2)}</td>
-                        <td onClick={(e) => e.stopPropagation()}>
-                              {isPendingCancel ? (
-                                <div className="admin-cancel-actions">
-                                  <button onClick={() => handleConfirmCancel(order._id)} className="admin-confirm-cancel-btn">
-                                    <FiCheckCircle size={14} /> Confirm Cancel
-                                  </button>
-                                  <button onClick={() => handleDeclineCancel(order._id)} className="admin-decline-cancel-btn">
-                                    <FiX size={14} /> Decline
-                                  </button>
-                                </div>
-                              ) : isCancelled ? (
-                                <span className="badge-cancelled"><FiX size={12} /> Cancelled</span>
-                              ) : (
-                                <select value={order.status || 'pending'} onChange={(e) => handleStatusChange(order._id, e.target.value)} className="status-select">
-                                  <option value="pending">📦 Order Placed</option>
-                                  <option value="processing">⚙️ Processing</option>
-                                  <option value="shipped">🚚 Shipped</option>
-                                  <option value="delivered">✅ Delivered</option>
-                                </select>
-                              )}
-                            </td>
-                      </tr>
-                      {isExpanded && (
-                        <tr>
-                          <td colSpan="4" style={{padding: 0}}>
-                            <div className="expanded-order-info">
-                              <div className="shipping-grid">
-                                <div className="shipping-col">
-                                  <h4><FiMapPin /> Delivery Address</h4>
-                                  <p><FiUser size={12} /> <strong>Name:</strong> {order.shippingAddress?.fullName || 'N/A'}</p>
-                                  <p><FiPhone size={12} /> <strong>Phone:</strong> {order.shippingAddress?.phone || 'N/A'}</p>
-                                  <p><FiMapPin size={12} /> <strong>Address:</strong> {order.shippingAddress?.address || 'N/A'}</p>
-                                </div>
-                                <div className="shipping-col">
-                                  <h4><FiCreditCard /> Payment & Notes</h4>
-                                  <p><FiCreditCard size={12} /> <strong>Method:</strong> {order.paymentMethod === 'cash' ? 'Cash on Delivery' : order.paymentMethod || 'N/A'}</p>
-                                  {order.shippingAddress?.deliveryInstructions && (
-                                    <p className="shipping-notes"><FiAlertCircle size={12} /> <strong>Instructions:</strong> {order.shippingAddress.deliveryInstructions}</p>
-                                  )}
-                                </div>
-                                <div className="shipping-col">
-                                  <h4><FiBox /> Items Ordered</h4>
-                                  {order.items?.map((item, idx) => (
-                                    <div key={idx} style={{display:'flex', gap:'0.5rem', marginBottom:'0.5rem', alignItems:'center'}}>
-                                      <img src={item.image} alt="wine" style={{width:'25px', height:'35px', objectFit:'contain', background:'#141414', borderRadius:'4px'}} />
-                                      <span style={{color:'#ccc', fontSize:'0.85rem'}}>{item.wine} (x{item.quantity})</span>
-                                    </div>
-                                  ))}
+            <>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th style={{width:'100px'}}>Order #</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th style={{width:'220px'}}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentOrders.map(order => {
+                    const isPendingCancel = order.status === 'cancellation_requested';
+                    const isCancelled = order.status === 'cancelled';
+                    const isExpanded = expandedOrderId === order._id;
+                    
+                    return (
+                      <React.Fragment key={order._id}>
+                        <tr className={isCancelled ? 'cancelled-table-row' : ''} style={{cursor:'pointer'}} onClick={() => setExpandedOrderId(isExpanded ? null : order._id)}>
+                          <td style={{color: '#C5A059', fontWeight:'bold'}}>
+                            #{order.orderNumber?.slice(-8) || order._id?.slice(-8)}
+                            <span style={{fontSize:'0.7rem', color:'#888', display:'block'}}>▼ Click to expand</span>
+                          </td>
+                          <td style={{color:'#ccc'}}>{order.userName}</td>
+                          <td style={{color: isCancelled ? '#666' : '#C5A059', fontWeight: 'bold', textDecoration: isCancelled ? 'line-through' : 'none'}}>${(order.total || 0).toFixed(2)}</td>
+                          <td onClick={(e) => e.stopPropagation()}>
+                                {isPendingCancel ? (
+                                  <div className="admin-cancel-actions">
+                                    <button onClick={() => handleConfirmCancel(order._id)} className="admin-confirm-cancel-btn">
+                                      <FiCheckCircle size={14} /> Confirm Cancel
+                                    </button>
+                                    <button onClick={() => handleDeclineCancel(order._id)} className="admin-decline-cancel-btn">
+                                      <FiX size={14} /> Decline
+                                    </button>
+                                  </div>
+                                ) : isCancelled ? (
+                                  <span className="badge-cancelled"><FiX size={12} /> Cancelled</span>
+                                ) : (
+                                  <select value={order.status || 'pending'} onChange={(e) => handleStatusChange(order._id, e.target.value)} className="status-select">
+                                    <option value="pending">📦 Order Placed</option>
+                                    <option value="processing">⚙️ Processing</option>
+                                    <option value="shipped">🚚 Shipped</option>
+                                    <option value="delivered">✅ Delivered</option>
+                                  </select>
+                                )}
+                              </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan="4" style={{padding: 0}}>
+                              <div className="expanded-order-info">
+                                <div className="shipping-grid">
+                                  <div className="shipping-col">
+                                    <h4><FiMapPin /> Delivery Address</h4>
+                                    <p><FiUser size={12} /> <strong>Name:</strong> {order.shippingAddress?.fullName || 'N/A'}</p>
+                                    <p><FiPhone size={12} /> <strong>Phone:</strong> {order.shippingAddress?.phone || 'N/A'}</p>
+                                    <p><FiMapPin size={12} /> <strong>Address:</strong> {order.shippingAddress?.address || 'N/A'}</p>
+                                  </div>
+                                  <div className="shipping-col">
+                                    <h4><FiCreditCard /> Payment & Notes</h4>
+                                    <p><FiCreditCard size={12} /> <strong>Method:</strong> {order.paymentMethod === 'cash' ? 'Cash on Delivery' : order.paymentMethod || 'N/A'}</p>
+                                    {order.shippingAddress?.deliveryInstructions && (
+                                      <p className="shipping-notes"><FiAlertCircle size={12} /> <strong>Instructions:</strong> {order.shippingAddress.deliveryInstructions}</p>
+                                    )}
+                                  </div>
+                                  <div className="shipping-col">
+                                    <h4><FiBox /> Items Ordered</h4>
+                                    {order.items?.map((item, idx) => (
+                                      <div key={idx} style={{display:'flex', gap:'0.5rem', marginBottom:'0.5rem', alignItems:'center'}}>
+                                        <img src={item.image} alt="wine" style={{width:'25px', height:'35px', objectFit:'contain', background:'#141414', borderRadius:'4px'}} />
+                                        <span style={{color:'#ccc', fontSize:'0.85rem'}}>{item.wine} (x{item.quantity})</span>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {renderPagination(
+                currentOrderPage, 
+                totalOrderPages, 
+                setCurrentOrderPage, 
+                getOrderPageNumbers, 
+                orders.length, 
+                indexOfFirstOrder, 
+                indexOfLastOrder
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* USERS SECTION */}
+      {/* USERS SECTION WITH PAGINATION */}
       {activeTab === 'users' && (
         <div className="admin-table-container">
           <h3>Manage Users</h3>
           {users.length === 0 ? (
             <p className="empty-table">No users registered yet.</p>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th style={{width:'180px'}}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => {
-                  const isCurrentAdmin = user.email === JSON.parse(localStorage.getItem('wineShopUser') || '{}').email;
-                  const isAdmin = user.role === 'admin';
-                  
-                  return (
-                    <React.Fragment key={user._id}>
-                      <tr>
-                        <td>{editingUser?._id === user._id ? (
-                          <input type="text" value={editUserData.name} onChange={(e) => setEditUserData({...editUserData, name: e.target.value})} className="admin-edit-input" />
-                        ) : user.name}</td>
-                        <td>{editingUser?._id === user._id ? (
-                          <input type="email" value={editUserData.email} onChange={(e) => setEditUserData({...editUserData, email: e.target.value})} className="admin-edit-input" />
-                        ) : user.email}</td>
-                        <td>
-                          {editingUser?._id === user._id ? (
-                            <select value={editUserData.role} onChange={(e) => setEditUserData({...editUserData, role: e.target.value})} className="admin-edit-select">
-                              <option value="user">User</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                          ) : (
-                            <span className={`badge-${user.role}`}>
-                              {user.role === 'admin' ? <FiUsers size={12} /> : <FiUser size={12} />}
-                              {' '}{user.role}
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="admin-cancel-actions">
-                            {editingUser?._id === user._id ? (
-                              <>
-                                <button onClick={handleSaveEdit} className="admin-action-btn save">
-                                  <FiSave /> Save
-                                </button>
-                                <button onClick={handleCancelEdit} className="admin-action-btn cancel-edit">
-                                  <FiX /> Cancel
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button onClick={() => handleStartEdit(user)} className="admin-action-btn edit">
-                                  <FiEdit /> Edit
-                                </button>
-                                {!isAdmin && (
-                                  <button onClick={() => handleDeleteUser(user._id)} className="admin-action-btn delete">
-                                    <FiTrash2 /> Delete
-                                  </button>
-                                )}
-                                {isAdmin && (
-                                  <span className="admin-protected-badge" title="Admin accounts cannot be deleted">
-                                    <FiLock size={14} />
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                      
-                      {editingUser?._id === user._id && (
+            <>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th style={{width:'180px'}}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentUsers.map((user) => {
+                    const isCurrentAdmin = user.email === JSON.parse(localStorage.getItem('wineShopUser') || '{}').email;
+                    const isAdmin = user.role === 'admin';
+                    
+                    return (
+                      <React.Fragment key={user._id}>
                         <tr>
-                          <td colSpan="4" style={{padding: 0, background: '#252525'}}>
-                            <div className="expanded-edit-form">
-                              <div className="edit-password-section">
-                                <label>Change Password (optional)</label>
-                                <input 
-                                  type="password" 
-                                  value={editUserData.password} 
-                                  onChange={(e) => setEditUserData({...editUserData, password: e.target.value})} 
-                                  className="admin-edit-input" 
-                                  placeholder="Enter new password (leave blank to keep current)"
-                                />
-                                <small style={{color: '#888', display: 'block', marginTop: '5px'}}>
-                                  Only enter a password if you want to change it
-                                </small>
-                              </div>
+                          <td>{editingUser?._id === user._id ? (
+                            <input type="text" value={editUserData.name} onChange={(e) => setEditUserData({...editUserData, name: e.target.value})} className="admin-edit-input" />
+                          ) : user.name}</td>
+                          <td>{editingUser?._id === user._id ? (
+                            <input type="email" value={editUserData.email} onChange={(e) => setEditUserData({...editUserData, email: e.target.value})} className="admin-edit-input" />
+                          ) : user.email}</td>
+                          <td>
+                            {editingUser?._id === user._id ? (
+                              <select value={editUserData.role} onChange={(e) => setEditUserData({...editUserData, role: e.target.value})} className="admin-edit-select">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                            ) : (
+                              <span className={`badge-${user.role}`}>
+                                {user.role === 'admin' ? <FiUsers size={12} /> : <FiUser size={12} />}
+                                {' '}{user.role}
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <div className="admin-cancel-actions">
+                              {editingUser?._id === user._id ? (
+                                <>
+                                  <button onClick={handleSaveEdit} className="admin-action-btn save">
+                                    <FiSave /> Save
+                                  </button>
+                                  <button onClick={handleCancelEdit} className="admin-action-btn cancel-edit">
+                                    <FiX /> Cancel
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button onClick={() => handleStartEdit(user)} className="admin-action-btn edit">
+                                    <FiEdit /> Edit
+                                  </button>
+                                  {!isAdmin && (
+                                    <button onClick={() => handleDeleteUser(user._id)} className="admin-action-btn delete">
+                                      <FiTrash2 /> Delete
+                                    </button>
+                                  )}
+                                  {isAdmin && (
+                                    <span className="admin-protected-badge" title="Admin accounts cannot be deleted">
+                                      <FiLock size={14} />
+                                    </span>
+                                  )}
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                        
+                        {editingUser?._id === user._id && (
+                          <tr>
+                            <td colSpan="4" style={{padding: 0, background: '#252525'}}>
+                              <div className="expanded-edit-form">
+                                <div className="edit-password-section">
+                                  <label>Change Password (optional)</label>
+                                  <input 
+                                    type="password" 
+                                    value={editUserData.password} 
+                                    onChange={(e) => setEditUserData({...editUserData, password: e.target.value})} 
+                                    className="admin-edit-input" 
+                                    placeholder="Enter new password (leave blank to keep current)"
+                                  />
+                                  <small style={{color: '#888', display: 'block', marginTop: '5px'}}>
+                                    Only enter a password if you want to change it
+                                  </small>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {renderPagination(
+                currentUserPage, 
+                totalUserPages, 
+                setCurrentUserPage, 
+                getUserPageNumbers, 
+                users.length, 
+                indexOfFirstUser, 
+                indexOfLastUser
+              )}
+            </>
           )}
         </div>
       )}
@@ -780,29 +860,15 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
 
-              {totalWinePages > 1 && (
-                <div className="admin-pagination">
-                  <button onClick={goToPreviousWinePage} disabled={currentWinePage === 1} className="pagination-btn">
-                    <FiChevronLeft /> Previous
-                  </button>
-                  
-                  <div className="pagination-numbers">
-                    {getWinePageNumbers().map(pageNum => (
-                      <button key={pageNum} onClick={() => goToWinePage(pageNum)} className={`pagination-num ${currentWinePage === pageNum ? 'active' : ''}`}>
-                        {pageNum}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <button onClick={goToNextWinePage} disabled={currentWinePage === totalWinePages} className="pagination-btn">
-                    Next <FiChevronRight />
-                  </button>
-                </div>
+              {renderPagination(
+                currentWinePage, 
+                totalWinePages, 
+                setCurrentWinePage, 
+                getWinePageNumbers, 
+                wines.length, 
+                indexOfFirstWine, 
+                indexOfLastWine
               )}
-              
-              <div className="pagination-info">
-                Showing {indexOfFirstWine + 1} to {Math.min(indexOfLastWine, wines.length)} of {wines.length} wines
-              </div>
             </>
           )}
         </div>

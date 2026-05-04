@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiPackage, FiAlertCircle, FiPlus, FiMinus, FiEdit, FiSave, FiX, FiRefreshCw, FiTrendingUp, FiXCircle, FiAlertTriangle, FiMinusCircle, FiCheckCircle } from 'react-icons/fi';
+import { FiPackage, FiAlertCircle, FiPlus, FiMinus, FiEdit, FiSave, FiX, FiRefreshCw, FiTrendingUp, FiXCircle, FiAlertTriangle, FiMinusCircle, FiCheckCircle, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useNotification } from '../context/NotificationContext';
 import { API_URL } from '../config';
 
@@ -13,6 +13,10 @@ const InventoryManagement = () => {
   const [adjustReason, setAdjustReason] = useState('');
   const [stats, setStats] = useState({ totalItems: 0, lowStock: 0, totalValue: 0 });
   const { addNotification } = useNotification();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchInventory();
@@ -49,27 +53,54 @@ const InventoryManagement = () => {
     }
   };
 
-  const handleInitialize = async () => {
-  if (window.confirm('This will create inventory entries for all wines. Continue?')) {
-    try {
-      const token = localStorage.getItem('authToken');
-      // FIXED: Use /initialize endpoint
-      const response = await fetch(`${API_URL}/inventory/initialize`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        }
-      });
-      const data = await response.json();
-      addNotification(`Inventory initialized: ${data.created} created`, 'success', null, null);
-      fetchInventory();
-    } catch (error) {
-      console.error('Initialize error:', error);
-      addNotification('Failed to initialize inventory', 'error', null, null);
+  // Reset page when inventory length changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [inventory.length]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(inventory.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = inventory.slice(indexOfFirst, indexOfLast);
+
+  // Page numbers helper
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
     }
-  }
-};
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    return pageNumbers;
+  };
+
+  const handleInitialize = async () => {
+    if (window.confirm('This will create inventory entries for all wines. Continue?')) {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`${API_URL}/inventory/initialize`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+          }
+        });
+        const data = await response.json();
+        addNotification(`Inventory initialized: ${data.created} created`, 'success', null, null);
+        fetchInventory();
+      } catch (error) {
+        console.error('Initialize error:', error);
+        addNotification('Failed to initialize inventory', 'error', null, null);
+      }
+    }
+  };
 
   const handleEdit = (item) => {
     setEditingId(item._id);
@@ -121,7 +152,6 @@ const InventoryManagement = () => {
     try {
       const token = localStorage.getItem('authToken');
       
-      // FIXED: Use the correct /adjust endpoint with the specific wineId
       const response = await fetch(`${API_URL}/inventory/${item.wineId}/adjust`, {
         method: 'PATCH',
         headers: {
@@ -146,7 +176,6 @@ const InventoryManagement = () => {
     }
   };
 
-  // UPDATED: Replaced emojis with React Icons
   const getStockStatus = (quantity, threshold) => {
     if (quantity === 0) return { text: 'Out of Stock', color: '#e74c3c', icon: <FiXCircle size={14} /> };
     if (quantity <= threshold) return { text: 'Low Stock', color: '#f1c40f', icon: <FiAlertTriangle size={14} /> };
@@ -200,99 +229,144 @@ const InventoryManagement = () => {
 
       {/* Inventory Table */}
       <div className="inventory-table-container">
-        <table className="inventory-table">
-          <thead>
-            <tr>
-              <th>Wine</th>
-              <th>Winery</th>
-              <th>Stock</th>
-              <th>Status</th>
-              <th>Low Stock Alert</th>
-              <th>Supplier</th>
-              <th>Last Restocked</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory.map((item) => {
-              const status = getStockStatus(item.quantity, item.lowStockThreshold);
-              const isEditing = editingId === item._id;
-              
-              return (
-                <tr key={item._id} className={item.quantity === 0 ? 'out-of-stock' : ''}>
-                  <td className="wine-name">{item.wineName}</td>
-                  <td className="winery">{item.winery || '—'}</td>
-                  <td className={`stock-quantity ${item.quantity <= item.lowStockThreshold ? 'low' : ''}`}>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        value={editForm.quantity}
-                        onChange={(e) => setEditForm({...editForm, quantity: parseInt(e.target.value) || 0})}
-                        className="stock-input"
-                        min="0"
-                      />
-                    ) : (
-                      <span>{item.quantity}</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className="stock-status" style={{ color: status.color, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {status.icon} {status.text}
-                    </span>
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        value={editForm.lowStockThreshold}
-                        onChange={(e) => setEditForm({...editForm, lowStockThreshold: parseInt(e.target.value) || 0})}
-                        className="stock-input"
-                        min="1"
-                      />
-                    ) : (
-                      <span>{item.lowStockThreshold}</span>
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editForm.supplier}
-                        onChange={(e) => setEditForm({...editForm, supplier: e.target.value})}
-                        className="supplier-input"
-                        placeholder="Supplier name"
-                      />
-                    ) : (
-                      <span>{item.supplier || '—'}</span>
-                    )}
-                  </td>
-                  <td>{item.lastRestocked ? new Date(item.lastRestocked).toLocaleDateString() : '—'}</td>
-                  <td className="actions">
-                    {isEditing ? (
-                      <>
-                        <button onClick={() => handleSaveEdit(item)} className="save-btn" title="Save">
-                          <FiSave />
-                        </button>
-                        <button onClick={() => setEditingId(null)} className="cancel-btn" title="Cancel">
-                          <FiX />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={() => handleEdit(item)} className="edit-btn" title="Edit">
-                          <FiEdit />
-                        </button>
-                        <button onClick={() => setAdjustModal(item)} className="adjust-btn" title="Adjust Stock">
-                          {item.quantity === 0 ? <FiPlus /> : <FiMinus />}
-                        </button>
-                      </>
-                    )}
-                  </td>
+        {inventory.length === 0 ? (
+          <p className="empty-table">No inventory items found.</p>
+        ) : (
+          <>
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th>Wine</th>
+                  <th>Winery</th>
+                  <th>Stock</th>
+                  <th>Status</th>
+                  <th>Low Stock Alert</th>
+                  <th>Supplier</th>
+                  <th>Last Restocked</th>
+                  <th>Actions</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {currentItems.map((item) => {
+                  const status = getStockStatus(item.quantity, item.lowStockThreshold);
+                  const isEditing = editingId === item._id;
+                  
+                  return (
+                    <tr key={item._id} className={item.quantity === 0 ? 'out-of-stock' : ''}>
+                      <td className="wine-name">{item.wineName}</td>
+                      <td className="winery">{item.winery || '—'}</td>
+                      <td className={`stock-quantity ${item.quantity <= item.lowStockThreshold ? 'low' : ''}`}>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editForm.quantity}
+                            onChange={(e) => setEditForm({...editForm, quantity: parseInt(e.target.value) || 0})}
+                            className="stock-input"
+                            min="0"
+                          />
+                        ) : (
+                          <span>{item.quantity}</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="stock-status" style={{ color: status.color, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {status.icon} {status.text}
+                        </span>
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editForm.lowStockThreshold}
+                            onChange={(e) => setEditForm({...editForm, lowStockThreshold: parseInt(e.target.value) || 0})}
+                            className="stock-input"
+                            min="1"
+                          />
+                        ) : (
+                          <span>{item.lowStockThreshold}</span>
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editForm.supplier}
+                            onChange={(e) => setEditForm({...editForm, supplier: e.target.value})}
+                            className="supplier-input"
+                            placeholder="Supplier name"
+                          />
+                        ) : (
+                          <span>{item.supplier || '—'}</span>
+                        )}
+                      </td>
+                      <td>{item.lastRestocked ? new Date(item.lastRestocked).toLocaleDateString() : '—'}</td>
+                      <td className="actions">
+                        {isEditing ? (
+                          <>
+                            <button onClick={() => handleSaveEdit(item)} className="save-btn" title="Save">
+                              <FiSave />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="cancel-btn" title="Cancel">
+                              <FiX />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => handleEdit(item)} className="edit-btn" title="Edit">
+                              <FiEdit />
+                            </button>
+                            <button onClick={() => setAdjustModal(item)} className="adjust-btn" title="Adjust Stock">
+                              {item.quantity === 0 ? <FiPlus /> : <FiMinus />}
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* PAGINATION */}
+            {totalPages > 1 && (
+              <>
+                <div className="admin-pagination">
+                  <button 
+                    onClick={() => setCurrentPage(p => p - 1)} 
+                    disabled={currentPage === 1} 
+                    className="pagination-btn"
+                  >
+                    <FiChevronLeft /> Previous
+                  </button>
+                  
+                  <div className="pagination-numbers">
+                    {getPageNumbers().map(pageNum => (
+                      <button 
+                        key={pageNum} 
+                        onClick={() => setCurrentPage(pageNum)} 
+                        className={`pagination-num ${currentPage === pageNum ? 'active' : ''}`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    onClick={() => setCurrentPage(p => p + 1)} 
+                    disabled={currentPage === totalPages} 
+                    className="pagination-btn"
+                  >
+                    Next <FiChevronRight />
+                  </button>
+                </div>
+
+                <div className="pagination-info">
+                  Showing {indexOfFirst + 1} to {Math.min(indexOfLast, inventory.length)} of {inventory.length} items
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* Adjust Stock Modal */}

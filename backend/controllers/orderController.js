@@ -256,6 +256,12 @@ const updateOrderStatus = async (req, res) => {
     
     order.status = status;
     order.updatedAt = Date.now();
+    
+    // Set deliveredAt when status changes to delivered
+    if (status === 'delivered' && !order.deliveredAt) {
+      order.deliveredAt = Date.now();
+    }
+    
     await order.save();
     
     res.json({ message: 'Order status updated', order });

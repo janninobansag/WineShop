@@ -26,7 +26,7 @@ const SearchBar = ({ onSearch }) => {
       />
       {query && (
         <button type="button" className="clear-btn" onClick={handleClear}>
-          ✕
+        ✕
         </button>
       )}
       <button type="submit" className="search-btn">
