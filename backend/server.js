@@ -15,7 +15,8 @@ const app = express();
 app.use(cors({ 
   origin: [
     'http://localhost:3000',           // Standard React/Next.js port
-    'http://localhost:5173',           // Vite default port
+    'http://localhost:5173',  
+     'https://wineshopp.vercel.app',         // Vite default port
     'https://wineshopily.netlify.app', // Live production frontend
     'https://deploy-preview-25--wineshopily.netlify.app', // Specific preview
     'https://*.netlify.app'            // All Netlify preview URLs
