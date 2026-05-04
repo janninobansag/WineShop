@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { toast } from 'react-toastify';
+import { API_URL } from '../config';
 
 const FlipWineCard = ({ wine }) => {
   const { addToCart } = useCart();
@@ -16,7 +17,7 @@ const FlipWineCard = ({ wine }) => {
   const [stock, setStock] = useState(null);
   const [loadingStock, setLoadingStock] = useState(true);
   
-  // Review state - ADD THIS
+  // Review state
   const [rating, setRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
 
@@ -28,11 +29,10 @@ const FlipWineCard = ({ wine }) => {
   }
   const formattedPrice = priceNumber.toFixed(2);
 
-  // Fetch reviews from backend - ADD THIS
+  // Fetch reviews from backend
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         const response = await fetch(`${API_URL}/reviews/wine/${wine._id}`);
         
         if (response.ok) {
@@ -59,7 +59,6 @@ const FlipWineCard = ({ wine }) => {
   useEffect(() => {
     const fetchStock = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         const response = await fetch(`${API_URL}/inventory/public/${wine._id}`);
         
         if (response.ok) {
